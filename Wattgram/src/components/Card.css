@@ -1,0 +1,51 @@
+.card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.card-author-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.card-author {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.card-date {
+  color: var(--color-text-tertiary);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  margin: 0;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.card-content {
+  color: var(--color-text-secondary);
+  font-size: 1rem;
+  line-height: 1.6;
+}
