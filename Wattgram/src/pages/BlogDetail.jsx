@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
-import { MockBlogData } from '../mockData';
 import { Button } from '../components/Button';
 import './BlogDetail.css';
 

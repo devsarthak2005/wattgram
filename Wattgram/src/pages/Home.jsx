@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardContent } from '../components/Card';
 import { Input } from '../components/Input';
 import { Search } from 'lucide-react';
-import { MockBlogData } from '../mockData';
 import { Link } from 'react-router-dom';
 import './Home.css';
 
