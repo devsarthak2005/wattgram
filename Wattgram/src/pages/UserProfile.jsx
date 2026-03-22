@@ -31,7 +31,7 @@ export const UserProfile = () => {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
-    const profileUrl = isOwnProfile ? 'http://localhost:8080/api/users/me' : `http://localhost:8080/api/users/${username}`;
+    const profileUrl = isOwnProfile ? `${import.meta.env.VITE_API_BASE_URL}/api/users/me` : `${import.meta.env.VITE_API_BASE_URL}/api/users/${username}`;
     
     fetch(profileUrl, { headers })
       .then(res => res.json())
@@ -42,7 +42,7 @@ export const UserProfile = () => {
       })
       .catch(err => console.error(err));
 
-    fetch('http://localhost:8080/api/blogs', { headers })
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`, { headers })
       .then(res => res.json())
       .then(data => setUserBlogs(Array.isArray(data) ? data : []))
       .catch(err => {
@@ -51,7 +51,7 @@ export const UserProfile = () => {
       });
 
     if (isOwnProfile && token) {
-      fetch('http://localhost:8080/api/blogs/me/drafts', { headers })
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs/me/drafts`, { headers })
         .then(res => res.json())
         .then(data => setDraftBlogs(Array.isArray(data) ? data : []))
         .catch(err => {
@@ -70,7 +70,7 @@ export const UserProfile = () => {
 
   const confirmDelete = () => {
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/blogs/${blogToDelete.id}`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs/${blogToDelete.id}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -90,7 +90,7 @@ export const UserProfile = () => {
     const token = localStorage.getItem('token');
     if(!token) return alert('Please login to follow');
     const method = profile.following ? 'DELETE' : 'POST';
-    fetch(`http://localhost:8080/api/users/${profile.username}/follow`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/${profile.username}/follow`, {
       method,
       headers: { 'Authorization': `Bearer ${token}` }
     })
@@ -112,7 +112,7 @@ export const UserProfile = () => {
       const formData = new FormData();
       formData.append("file", profilePictureFile);
       try {
-        const uploadRes = await fetch('http://localhost:8080/api/images/upload', {
+        const uploadRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
@@ -129,7 +129,7 @@ export const UserProfile = () => {
       }
     }
 
-    fetch('http://localhost:8080/api/users/me', {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/me`, {
       method: 'PUT',
       headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: editName, bio: editBio, profilePicture: profilePicUrl })
@@ -146,7 +146,7 @@ export const UserProfile = () => {
     if (!profile) return;
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    fetch(`http://localhost:8080/api/users/${profile.username}/followers`, { headers })
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/${profile.username}/followers`, { headers })
       .then(res => res.json())
       .then(data => { setFollowers(data); setIsFollowersModalOpen(true); });
   };
@@ -155,7 +155,7 @@ export const UserProfile = () => {
     if (!profile) return;
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-    fetch(`http://localhost:8080/api/users/${profile.username}/following`, { headers })
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/${profile.username}/following`, { headers })
       .then(res => res.json())
       .then(data => { setFollowing(data); setIsFollowingModalOpen(true); });
   };

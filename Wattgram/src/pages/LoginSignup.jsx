@@ -12,7 +12,7 @@ export const LoginSignup = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const url = isLogin ? 'http://localhost:8080/api/auth/login' : 'http://localhost:8080/api/auth/register';
+    const url = isLogin ? `${import.meta.env.VITE_API_BASE_URL}/api/auth/login` : `${import.meta.env.VITE_API_BASE_URL}/api/auth/register`;
     const payload = isLogin 
       ? { usernameOrEmail: email, password } 
       : { name, username, email, password };

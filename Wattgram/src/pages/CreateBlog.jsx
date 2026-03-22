@@ -20,7 +20,7 @@ export const CreateBlog = () => {
       const formData = new FormData();
       formData.append("file", imageFile);
       try {
-        const uploadRes = await fetch('http://localhost:8080/api/images/upload', {
+        const uploadRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
           body: formData
@@ -37,7 +37,7 @@ export const CreateBlog = () => {
       }
     }
     
-    fetch('http://localhost:8080/api/blogs', {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

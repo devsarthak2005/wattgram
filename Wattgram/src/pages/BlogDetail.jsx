@@ -17,7 +17,7 @@ export const BlogDetail = () => {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
-    fetch(`http://localhost:8080/api/blogs/${id}`, { headers })
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs/${id}`, { headers })
       .then(res => res.json())
       .then(data => {
           setBlog(data);
@@ -26,7 +26,7 @@ export const BlogDetail = () => {
       })
       .catch(err => console.error(err));
 
-    fetch(`http://localhost:8080/api/blogs/${id}/comments`, { headers })
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs/${id}/comments`, { headers })
       .then(res => res.json())
       .then(data => setComments(data))
       .catch(err => console.error(err));
@@ -40,7 +40,7 @@ export const BlogDetail = () => {
         alert("Please login to like this blog");
         return;
     }
-    fetch(`http://localhost:8080/api/blogs/${id}/like`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs/${id}/like`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => {
@@ -58,7 +58,7 @@ export const BlogDetail = () => {
         alert("Please login to comment");
         return;
     }
-    fetch(`http://localhost:8080/api/blogs/${id}/comments`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs/${id}/comments`, {
         method: 'POST',
         headers: { 
             'Authorization': `Bearer ${token}`,

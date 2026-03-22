@@ -16,7 +16,7 @@ export const Home = () => {
   const [users, setUsers] = React.useState([]);
 
   React.useEffect(() => {
-    fetch('http://localhost:8080/api/blogs')
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`)
       .then(res => {
           if (!res.ok) throw new Error('Server returned ' + res.status);
           return res.json();
@@ -34,7 +34,7 @@ export const Home = () => {
       return;
     }
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8080/api/users/search?query=${searchQuery}`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/search?query=${searchQuery}`, {
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     })
       .then(res => res.json())
