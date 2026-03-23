@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,6 +114,20 @@ public class UserServiceImpl implements UserService {
         return users.stream()
                 .map(u -> mapToDto(u, finalCurrent))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<UserDto> searchAndFilterUsers(String keyword, java.util.Map<String, String> filters, org.springframework.data.domain.Pageable pageable, String currentUsername) {
+        User current = null;
+        if (currentUsername != null && !currentUsername.equals("anonymousUser")) {
+            current = userRepository.findByUsername(currentUsername).orElse(null);
+        }
+        User finalCurrent = current;
+
+        org.springframework.data.jpa.domain.Specification<User> spec = com.example.wattram_backend.specification.UserSpecification.searchAndFilter(keyword, filters);
+        org.springframework.data.domain.Page<User> userPage = userRepository.findAll(spec, pageable);
+
+        return userPage.map(u -> mapToDto(u, finalCurrent));
     }
 
     @Override

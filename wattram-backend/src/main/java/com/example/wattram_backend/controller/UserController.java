@@ -7,8 +7,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -61,5 +65,14 @@ public class UserController {
     @GetMapping("/search")
     public ResponseEntity<List<UserDto>> searchUsers(@RequestParam("query") String query, Authentication authentication) {
         return ResponseEntity.ok(userService.searchUsers(query, getCurrentUsername(authentication)));
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<UserDto>> getUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam Map<String, String> filters,
+            @PageableDefault(page = 0, size = 10) Pageable pageable,
+            Authentication authentication) {
+        return ResponseEntity.ok(userService.searchAndFilterUsers(keyword, filters, pageable, getCurrentUsername(authentication)));
     }
 }
