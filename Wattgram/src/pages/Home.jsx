@@ -17,13 +17,13 @@ export const Home = () => {
   React.useEffect(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`)
       .then(res => {
-          if (!res.ok) throw new Error('Server returned ' + res.status);
-          return res.json();
+        if (!res.ok) throw new Error('Server returned ' + res.status);
+        return res.json();
       })
       .then(data => setBlogs(Array.isArray(data) ? data : []))
       .catch(err => {
-          console.error("Error fetching blogs:", err);
-          setBlogs([]);
+        console.error("Error fetching blogs:", err);
+        setBlogs([]);
       });
   }, []);
 
@@ -34,7 +34,7 @@ export const Home = () => {
     }
     const token = localStorage.getItem('token');
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/search?query=${searchQuery}`, {
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     })
       .then(res => res.json())
       .then(data => setUsers(data))
@@ -58,15 +58,15 @@ export const Home = () => {
       <div className="home-controls">
         <div className="search-bar">
           <Search className="search-icon" size={20} />
-          <input 
-            type="text" 
-            placeholder="Search blogs or users..." 
+          <input
+            type="text"
+            placeholder="Search blogs or users..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
           />
         </div>
-        
+
         <div className="category-filters">
           {categories.map(cat => (
             <button
@@ -85,9 +85,9 @@ export const Home = () => {
           <h3 style={{ marginBottom: '1rem' }}>Found Users</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             {users.map(u => (
-               <Link to={`/profile/${u.username}`} key={u.id} style={{ padding: '0.8rem 1.2rem', background: '#f0f0f0', borderRadius: '50px', textDecoration: 'none', color: '#333', fontWeight: '500' }}>
-                 @{u.username} ({u.name || 'No Name'})
-               </Link>
+              <Link to={`/profile/${u.username}`} key={u.id} style={{ padding: '0.8rem 1.2rem', background: '#f0f0f0', borderRadius: '50px', textDecoration: 'none', color: '#333', fontWeight: '500' }}>
+                @{u.username} ({u.name || 'No Name'})
+              </Link>
             ))}
           </div>
         </div>
