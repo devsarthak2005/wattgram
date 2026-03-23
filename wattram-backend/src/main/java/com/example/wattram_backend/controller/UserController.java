@@ -36,7 +36,8 @@ public class UserController {
     }
 
     @GetMapping("/{username}")
-    public ResponseEntity<UserDto> getUserProfile(@PathVariable("username") String username, Authentication authentication) {
+    public ResponseEntity<UserDto> getUserProfile(@PathVariable("username") String username,
+            Authentication authentication) {
         return ResponseEntity.ok(userService.getUserProfile(username, getCurrentUsername(authentication)));
     }
 
@@ -47,23 +48,27 @@ public class UserController {
     }
 
     @DeleteMapping("/{username}/follow")
-    public ResponseEntity<String> unfollowUser(@PathVariable("username") String username, Authentication authentication) {
+    public ResponseEntity<String> unfollowUser(@PathVariable("username") String username,
+            Authentication authentication) {
         userService.unfollowUser(username, authentication.getName());
         return ResponseEntity.ok("Successfully unfollowed " + username);
     }
 
     @GetMapping("/{username}/followers")
-    public ResponseEntity<List<UserDto>> getFollowers(@PathVariable("username") String username, Authentication authentication) {
+    public ResponseEntity<List<UserDto>> getFollowers(@PathVariable("username") String username,
+            Authentication authentication) {
         return ResponseEntity.ok(userService.getFollowers(username, getCurrentUsername(authentication)));
     }
 
     @GetMapping("/{username}/following")
-    public ResponseEntity<List<UserDto>> getFollowing(@PathVariable("username") String username, Authentication authentication) {
+    public ResponseEntity<List<UserDto>> getFollowing(@PathVariable("username") String username,
+            Authentication authentication) {
         return ResponseEntity.ok(userService.getFollowing(username, getCurrentUsername(authentication)));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<UserDto>> searchUsers(@RequestParam("query") String query, Authentication authentication) {
+    public ResponseEntity<List<UserDto>> searchUsers(@RequestParam("query") String query,
+            Authentication authentication) {
         return ResponseEntity.ok(userService.searchUsers(query, getCurrentUsername(authentication)));
     }
 
@@ -73,6 +78,7 @@ public class UserController {
             @RequestParam Map<String, String> filters,
             @PageableDefault(page = 0, size = 10) Pageable pageable,
             Authentication authentication) {
-        return ResponseEntity.ok(userService.searchAndFilterUsers(keyword, filters, pageable, getCurrentUsername(authentication)));
+        return ResponseEntity
+                .ok(userService.searchAndFilterUsers(keyword, filters, pageable, getCurrentUsername(authentication)));
     }
 }

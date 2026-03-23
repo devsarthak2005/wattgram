@@ -13,6 +13,8 @@ export const Home = () => {
 
   const [blogs, setBlogs] = React.useState([]);
   const [users, setUsers] = React.useState([]);
+  const [userPage, setUserPage] = useState(0);
+  const [hasMoreUsers, setHasMoreUsers] = useState(false);
 
   React.useEffect(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`)
@@ -30,16 +32,32 @@ export const Home = () => {
   React.useEffect(() => {
     if (searchQuery.trim() === '') {
       setUsers([]);
+      setHasMoreUsers(false);
       return;
     }
+    
+    // When exactly searchQuery changes, reset page to 0
+    setUserPage(0);
+  }, [searchQuery]);
+
+  React.useEffect(() => {
+    if (searchQuery.trim() === '') return;
+
     const token = localStorage.getItem('token');
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/search?query=${searchQuery}`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users?keyword=${searchQuery}&page=${userPage}&size=10`, {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     })
       .then(res => res.json())
-      .then(data => setUsers(data))
+      .then(data => {
+        if (userPage === 0) {
+          setUsers(data.content || []);
+        } else {
+          setUsers(prev => [...prev, ...(data.content || [])]);
+        }
+        setHasMoreUsers(!data.last);
+      })
       .catch(err => console.error("Error fetching users:", err));
-  }, [searchQuery]);
+  }, [searchQuery, userPage]);
 
   const filteredBlogs = blogs.filter(blog => {
     const titleMatch = blog.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
@@ -89,6 +107,14 @@ export const Home = () => {
                 @{u.username} ({u.name || 'No Name'})
               </Link>
             ))}
+            {hasMoreUsers && (
+              <button 
+                onClick={() => setUserPage(p => p + 1)}
+                style={{ padding: '0.8rem 1.2rem', background: 'transparent', border: '1px solid #333', borderRadius: '50px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Load More
+              </button>
+            )}
           </div>
         </div>
       )}
