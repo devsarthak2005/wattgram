@@ -9,6 +9,9 @@ import com.example.wattram_backend.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +41,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "users", key = "#currentUsername", unless = "#result == null")
     public UserDto getCurrentUser(String currentUsername) {
         User user = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUsername));
@@ -45,6 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CachePut(value = "users", key = "#currentUsername")
     public UserDto updateUserProfile(String currentUsername, UserDto updateDto) {
         User user = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUsername));
@@ -60,6 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "userProfiles", key = "#targetUsername + '-' + (#currentUsername != null ? #currentUsername : 'anon')", unless = "#result == null")
     public UserDto getUserProfile(String targetUsername, String currentUsername) {
         User target = userRepository.findByUsername(targetUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", targetUsername));
@@ -73,6 +79,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = {"userProfiles", "users"}, allEntries = true)
     public void followUser(String targetUsername, String currentUsername) {
         User current = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUsername));
@@ -89,6 +96,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = {"userProfiles", "users"}, allEntries = true)
     public void unfollowUser(String targetUsername, String currentUsername) {
         User current = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUsername));
