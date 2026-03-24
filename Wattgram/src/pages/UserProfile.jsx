@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
@@ -7,6 +7,7 @@ import './UserProfile.css';
 
 export const UserProfile = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
   const isOwnProfile = !username;
 
   const [profile, setProfile] = useState(null);
@@ -29,12 +30,27 @@ export const UserProfile = () => {
 
   React.useEffect(() => {
     const token = localStorage.getItem('token');
+
+    // If viewing own profile and not logged in, redirect to login
+    if (isOwnProfile && !token) {
+      navigate('/login');
+      return;
+    }
+
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
     
-    const profileUrl = isOwnProfile ? `${import.meta.env.VITE_API_BASE_URL}/api/users/me` : `${import.meta.env.VITE_API_BASE_URL}/api/users/${username}`;
+    const profileUrl = isOwnProfile
+      ? `${import.meta.env.VITE_API_BASE_URL}/api/users/me`
+      : `${import.meta.env.VITE_API_BASE_URL}/api/users/${username}`;
     
     fetch(profileUrl, { headers })
       .then(res => {
+        if (res.status === 401 || res.status === 403) {
+          // Token expired or invalid - clear it and redirect to login
+          localStorage.removeItem('token');
+          navigate('/login');
+          throw new Error('Unauthorized');
+        }
         if (!res.ok) throw new Error('Profile fetch failed');
         return res.json();
       })
@@ -44,8 +60,10 @@ export const UserProfile = () => {
         setEditBio(data.bio || '');
       })
       .catch(err => {
-        console.error(err);
-        setProfile({ fetchError: true });
+        if (err.message !== 'Unauthorized') {
+          console.error(err);
+          setProfile({ fetchError: true });
+        }
       });
 
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`, { headers })
