@@ -34,13 +34,19 @@ export const UserProfile = () => {
     const profileUrl = isOwnProfile ? `${import.meta.env.VITE_API_BASE_URL}/api/users/me` : `${import.meta.env.VITE_API_BASE_URL}/api/users/${username}`;
     
     fetch(profileUrl, { headers })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Profile fetch failed');
+        return res.json();
+      })
       .then(data => {
         setProfile(data);
         setEditName(data.name || '');
         setEditBio(data.bio || '');
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        setProfile({ fetchError: true });
+      });
 
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`, { headers })
       .then(res => res.json())
@@ -161,6 +167,7 @@ export const UserProfile = () => {
   };
 
   if(!profile) return <div className="profile-container">Loading...</div>;
+  if(profile.fetchError) return <div className="profile-container">User not found or an error occurred.</div>;
 
   const displayBlogs = activeTab === 'stories' ? authorBlogs : draftBlogs;
 
