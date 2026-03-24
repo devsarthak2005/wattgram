@@ -11,4 +11,5 @@ public interface BlogService {
     BlogDto updateBlog(BlogDto blogDto, Long id, String username);
     void deleteBlog(Long id, String username);
     void toggleLike(Long blogId, String username);
+    List<BlogDto> getExploreBlogs(int limit, String currentUsername);
 }

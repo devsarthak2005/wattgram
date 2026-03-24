@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PenSquare, User, LogOut } from 'lucide-react';
+import { PenSquare, User, LogOut, Compass, Moon, Sun } from 'lucide-react';
 import './Navbar.css';
 
 export const Navbar = () => {
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
+
+  useEffect(() => {
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
@@ -11,6 +20,14 @@ export const Navbar = () => {
           Wattgram
         </Link>
         <div className="navbar-links">
+          <button onClick={toggleTheme} className="nav-item theme-toggle-btn" title="Toggle Theme" style={{background: 'none', border: 'none', cursor: 'pointer', outline: 'none'}}>
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+          <div className="nav-divider"></div>
+          <Link to="/explore" className="nav-item">
+            <Compass size={20} />
+            <span className="nav-text">Explore</span>
+          </Link>
           <Link to="/create" className="nav-item">
             <PenSquare size={20} />
             <span className="nav-text">Write</span>

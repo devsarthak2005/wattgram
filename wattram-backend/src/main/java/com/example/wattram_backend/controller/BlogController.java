@@ -31,6 +31,13 @@ public class BlogController {
         return ResponseEntity.ok(blogService.getAllBlogs(getCurrentUsername(authentication)));
     }
 
+    @GetMapping("/explore")
+    public ResponseEntity<List<BlogDto>> getExploreBlogs(
+            @RequestParam(defaultValue = "10") int limit,
+            Authentication authentication) {
+        return ResponseEntity.ok(blogService.getExploreBlogs(limit, getCurrentUsername(authentication)));
+    }
+
     @GetMapping("/me/drafts")
     public ResponseEntity<List<BlogDto>> getMyDrafts(Authentication authentication){
         return ResponseEntity.ok(blogService.getDraftsByAuthor(authentication.getName()));

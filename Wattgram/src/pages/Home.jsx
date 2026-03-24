@@ -119,11 +119,11 @@ export const Home = () => {
         </div>
       )}
 
-      <div className="blog-grid">
+      <div className="blog-feed">
         {filteredBlogs.map(blog => (
           <Link to={`/blog/${blog.id}`} key={blog.id} className="blog-card-link">
             <Card className="blog-card">
-              <CardHeader title={blog.title} authorDetails={blog.author} meta={blog.date} />
+              <CardHeader title={blog.title} authorDetails={blog.authorName || blog.author?.name} meta={blog.date} />
               <CardContent>
                 <p>{blog.preview}</p>
                 <span className="blog-category">{blog.category}</span>

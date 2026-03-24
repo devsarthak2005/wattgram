@@ -71,6 +71,15 @@ export const BlogDetail = () => {
       });
   };
 
+  const handleShare = () => {
+    const url = window.location.origin + `/blog/${blog.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Link copied to clipboard!");
+    }).catch(err => {
+      console.error("Failed to copy link: ", err);
+    });
+  };
+
   return (
     <article className="blog-detail-container">
       <header className="blog-header">
@@ -102,7 +111,7 @@ export const BlogDetail = () => {
             </button>
           </div>
           <div className="action-group">
-            <button className="action-btn"><Share2 size={20} /></button>
+            <button className="action-btn" onClick={handleShare}><Share2 size={20} /></button>
             <button className="action-btn"><MoreHorizontal size={20} /></button>
           </div>
         </div>

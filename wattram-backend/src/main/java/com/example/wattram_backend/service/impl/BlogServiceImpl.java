@@ -70,7 +70,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public List<BlogDto> getAllBlogs(String currentUsername) {
-        List<Blog> blogs = blogRepository.findByDraftFalse();
+        List<Blog> blogs = blogRepository.findByDraftFalseOrderByDateDesc();
         return blogs.stream().map(b -> mapToDTO(b, currentUsername)).collect(Collectors.toList());
     }
 
@@ -123,5 +123,11 @@ public class BlogServiceImpl implements BlogService {
             blog.getLikedBy().add(user);
         }
         blogRepository.save(blog);
+    }
+
+    @Override
+    public List<BlogDto> getExploreBlogs(int limit, String currentUsername) {
+        List<Blog> blogs = blogRepository.findRandomBlogs(limit);
+        return blogs.stream().map(b -> mapToDTO(b, currentUsername)).collect(Collectors.toList());
     }
 }
