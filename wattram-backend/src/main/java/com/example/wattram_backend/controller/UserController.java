@@ -34,7 +34,10 @@ public class UserController {
     }
 
     @PutMapping("/me")
-    public ResponseEntity<UserDto> updateProfile(@RequestBody UserDto userDto, Authentication authentication) {
+    public ResponseEntity<?> updateProfile(@RequestBody UserDto userDto, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
+        }
         return ResponseEntity.ok(userService.updateUserProfile(authentication.getName(), userDto));
     }
 
@@ -46,6 +49,9 @@ public class UserController {
 
     @PostMapping("/{username}/follow")
     public ResponseEntity<String> followUser(@PathVariable("username") String username, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
+        }
         userService.followUser(username, authentication.getName());
         return ResponseEntity.ok("Successfully followed " + username);
     }
@@ -53,6 +59,9 @@ public class UserController {
     @DeleteMapping("/{username}/follow")
     public ResponseEntity<String> unfollowUser(@PathVariable("username") String username,
             Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
+        }
         userService.unfollowUser(username, authentication.getName());
         return ResponseEntity.ok("Successfully unfollowed " + username);
     }

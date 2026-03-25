@@ -93,8 +93,10 @@ public class UserServiceImpl implements UserService {
             throw new APIException(HttpStatus.BAD_REQUEST, "You cannot follow yourself");
         }
         
-        target.getFollowers().add(current);
-        userRepository.save(target);
+        if (!target.getFollowers().contains(current)) {
+            target.getFollowers().add(current);
+            userRepository.save(target);
+        }
     }
 
     @Override

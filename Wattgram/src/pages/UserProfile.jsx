@@ -8,7 +8,8 @@ import './UserProfile.css';
 export const UserProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
-  const isOwnProfile = !username;
+  const token = localStorage.getItem('token');
+  const isOwnProfile = !username && token;
 
   const [profile, setProfile] = useState(null);
   const [userBlogs, setUserBlogs] = useState([]);
