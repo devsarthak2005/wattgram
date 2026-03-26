@@ -7,6 +7,7 @@ import { CreateBlog } from './pages/CreateBlog';
 import { LoginSignup } from './pages/LoginSignup';
 import { UserProfile } from './pages/UserProfile';
 import { Explore } from './pages/Explore';
+import { Chat } from './pages/Chat';
 import './index.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route path="/blog/:id" element={<BlogDetail />} />
             <Route path="/create" element={<CreateBlog />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/chat" element={<Chat />} />
             <Route path="/profile" element={<UserProfile />} />
             <Route path="/profile/:username" element={<UserProfile />} />
           </Routes>

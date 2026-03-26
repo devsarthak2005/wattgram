@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PenSquare, User, LogOut, Compass, Moon, Sun } from 'lucide-react';
+import { PenSquare, User, LogOut, Compass, Moon, Sun, MessageCircle } from 'lucide-react';
 import './Navbar.css';
 
 export const Navbar = () => {
@@ -31,6 +31,10 @@ export const Navbar = () => {
           <Link to="/create" className="nav-item">
             <PenSquare size={20} />
             <span className="nav-text">Write</span>
+          </Link>
+          <Link to="/chat" className="nav-item">
+            <MessageCircle size={20} />
+            <span className="nav-text">Chat</span>
           </Link>
           <div className="nav-divider"></div>
           <Link to="/profile" className="nav-item">
