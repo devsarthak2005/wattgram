@@ -210,9 +210,14 @@ export const UserProfile = () => {
         {isOwnProfile ? (
           <Button variant="outline" className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>Edit Profile</Button>
         ) : (
-          <Button variant={profile.following ? "outline" : "primary"} className="edit-profile-btn" onClick={handleFollow}>
-            {profile.following ? "Unfollow" : "Follow"}
-          </Button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button variant={profile.following ? "outline" : "primary"} className="edit-profile-btn" onClick={handleFollow}>
+              {profile.following ? "Unfollow" : "Follow"}
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/chat', { state: { contact: profile } })}>
+              Message
+            </Button>
+          </div>
         )}
       </div>
 

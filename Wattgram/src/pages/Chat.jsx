@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Send, User as UserIcon } from 'lucide-react';
 import './Chat.css';
 
 export const Chat = () => {
+  const location = useLocation();
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -21,7 +23,7 @@ export const Chat = () => {
     if (!currentUserId) return;
     
     // Fetch user contacts
-    fetch(`http://localhost:8080/api/chat/contacts/${currentUserId}`, {
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/contacts/${currentUserId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -29,7 +31,7 @@ export const Chat = () => {
       .catch(console.error);
 
     // Initialize WebSocket
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS(`${import.meta.env.VITE_API_BASE_URL}/ws`);
     const client = new Client({
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
@@ -62,7 +64,7 @@ export const Chat = () => {
   const selectContact = async (contact) => {
     setSelectedContact(contact);
     try {
-      const res = await fetch(`http://localhost:8080/api/chat/${currentUserId}/${contact.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/${currentUserId}/${contact.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
@@ -71,6 +73,20 @@ export const Chat = () => {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    if (location.state?.contact) {
+      const contactFromProfile = location.state.contact;
+      setContacts(prev => {
+        if (!prev.find(c => c.id === contactFromProfile.id)) {
+          return [contactFromProfile, ...prev];
+        }
+        return prev;
+      });
+      selectContact(contactFromProfile);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.contact]);
 
   const sendMessage = (e) => {
     e.preventDefault();

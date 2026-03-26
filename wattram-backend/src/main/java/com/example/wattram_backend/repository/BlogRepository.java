@@ -8,7 +8,7 @@ import java.util.List;
 public interface BlogRepository extends JpaRepository<Blog, Long> {
     List<Blog> findByDraftFalseOrderByDateDesc();
     
-    @Query(value = "SELECT * FROM blogs WHERE draft = false ORDER BY RAND() LIMIT :limit", nativeQuery = true)
+    @Query(value = "SELECT * FROM blogs WHERE draft = false ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Blog> findRandomBlogs(@Param("limit") int limit);
 
     List<Blog> findByAuthorUsernameAndDraftTrue(String username);
