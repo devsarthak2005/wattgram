@@ -41,7 +41,7 @@ export const Navbar = () => {
             <User size={20} />
             <span className="nav-text">Profile</span>
           </Link>
-          <Link to="/login" className="nav-item nav-logout">
+          <Link to="/login" className="nav-item nav-logout" onClick={() => { localStorage.removeItem('token'); localStorage.removeItem('user'); }}>
             <LogOut size={20} />
           </Link>
         </div>

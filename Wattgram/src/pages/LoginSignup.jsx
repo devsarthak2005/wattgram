@@ -27,9 +27,20 @@ export const LoginSignup = () => {
       if (isLogin) return res.json();
       return res.text();
     })
-    .then(data => {
+    .then(async data => {
       if (isLogin) {
         localStorage.setItem('token', data.accessToken);
+        try {
+          const userRes = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/me`, {
+            headers: { 'Authorization': `Bearer ${data.accessToken}` }
+          });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            localStorage.setItem('user', JSON.stringify(userData));
+          }
+        } catch (e) {
+          console.error("Failed to fetch user profile during login", e);
+        }
         window.location.href = '/';
       } else {
         alert('Registration successful! Please login.');

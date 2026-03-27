@@ -49,6 +49,7 @@ export const UserProfile = () => {
         if (res.status === 401 || res.status === 403) {
           // Token expired or invalid - clear it and redirect to login
           localStorage.removeItem('token');
+          localStorage.removeItem('user');
           navigate('/login');
           throw new Error('Unauthorized');
         }
