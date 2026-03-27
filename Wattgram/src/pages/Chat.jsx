@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Send, User as UserIcon } from 'lucide-react';
+import { Send, User as UserIcon, MessageCircle } from 'lucide-react';
 import './Chat.css';
 
 export const Chat = () => {
@@ -14,10 +14,33 @@ export const Chat = () => {
   const stompClient = useRef(null);
   const messagesEndRef = useRef(null);
   
-  const currentUserStr = localStorage.getItem('user');
-  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
-  const currentUserId = currentUser?.id;
   const token = localStorage.getItem('token');
+  const [currentUser, setCurrentUser] = useState(() => {
+    const str = localStorage.getItem('user');
+    return str ? JSON.parse(str) : null;
+  });
+  const [isLoadingUser, setIsLoadingUser] = useState(!currentUser && !!token);
+  const currentUserId = currentUser?.id;
+
+  useEffect(() => {
+    if (!currentUser && token) {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then(res => {
+        if(res.ok) return res.json();
+        throw new Error('Not authorized');
+      })
+      .then(user => {
+        localStorage.setItem('user', JSON.stringify(user));
+        setCurrentUser(user);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch user in Chat:", err);
+      })
+      .finally(() => setIsLoadingUser(false));
+    }
+  }, [currentUser, token]);
 
   useEffect(() => {
     if (!currentUserId) return;
@@ -115,6 +138,7 @@ export const Chat = () => {
     setInputMessage('');
   };
 
+  if (isLoadingUser) return <div className="chat-container auth-msg">Loading chat...</div>;
   if (!currentUser) return <div className="chat-container auth-msg">Please log in to use chat.</div>;
 
   return (
