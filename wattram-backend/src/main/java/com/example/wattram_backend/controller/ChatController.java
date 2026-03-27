@@ -35,7 +35,7 @@ public class ChatController {
     public void processMessage(@Payload ChatMessageDto chatMessageDto) {
         ChatMessageDto savedMsg = chatService.saveMessage(chatMessageDto);
         
-        messagingTemplate.convertAndSend("/user/" + chatMessageDto.getReceiverId() + "/queue/messages", savedMsg);
+        messagingTemplate.convertAndSend("/topic/messages/" + chatMessageDto.getReceiverId(), savedMsg);
     }
 
     @GetMapping("/api/chat/{userId1}/{userId2}")
@@ -54,7 +54,9 @@ public class ChatController {
         contacts.addAll(user.getFollowing());
         contacts.addAll(user.getFollowers());
         
-        Set<UserDto> contactDtos = contacts.stream().map(c -> {
+        Set<UserDto> contactDtos = contacts.stream()
+            .filter(c -> !user.getBlockedUsers().contains(c) && !c.getBlockedUsers().contains(user))
+            .map(c -> {
             UserDto dto = new UserDto();
             dto.setId(c.getId());
             dto.setUsername(c.getUsername());

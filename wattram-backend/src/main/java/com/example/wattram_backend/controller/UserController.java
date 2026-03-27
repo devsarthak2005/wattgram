@@ -66,6 +66,24 @@ public class UserController {
         return ResponseEntity.ok("Successfully unfollowed " + username);
     }
 
+    @PostMapping("/{username}/block")
+    public ResponseEntity<String> blockUser(@PathVariable("username") String username, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
+        }
+        userService.blockUser(username, authentication.getName());
+        return ResponseEntity.ok("Successfully blocked " + username);
+    }
+
+    @DeleteMapping("/{username}/block")
+    public ResponseEntity<String> unblockUser(@PathVariable("username") String username, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login required");
+        }
+        userService.unblockUser(username, authentication.getName());
+        return ResponseEntity.ok("Successfully unblocked " + username);
+    }
+
     @GetMapping("/{username}/followers")
     public ResponseEntity<List<UserDto>> getFollowers(@PathVariable("username") String username,
             Authentication authentication) {

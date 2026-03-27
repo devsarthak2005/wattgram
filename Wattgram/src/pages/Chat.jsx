@@ -8,7 +8,16 @@ import './Chat.css';
 export const Chat = () => {
   const location = useLocation();
   const [contacts, setContacts] = useState([]);
-  const [selectedContact, setSelectedContact] = useState(null);
+  const [selectedContact, setSelectedContact] = useState(() => {
+    const saved = localStorage.getItem('lastChatContact');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    if (selectedContact) {
+      localStorage.setItem('lastChatContact', JSON.stringify(selectedContact));
+    }
+  }, [selectedContact]);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const stompClient = useRef(null);
@@ -59,7 +68,7 @@ export const Chat = () => {
       webSocketFactory: () => socket,
       debug: (str) => console.log(str),
       onConnect: () => {
-        client.subscribe(`/user/${currentUserId}/queue/messages`, (msg) => {
+        client.subscribe(`/topic/messages/${currentUserId}`, (msg) => {
            const newMsg = JSON.parse(msg.body);
            setMessages(prev => {
              // Avoid duplicates if we receive what we sent, though our backend only sends to receiver
@@ -107,9 +116,11 @@ export const Chat = () => {
         return prev;
       });
       selectContact(contactFromProfile);
+    } else if (selectedContact && currentUserId && messages.length === 0) {
+      selectContact(selectedContact);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state?.contact]);
+  }, [location.state?.contact, currentUserId]);
 
   const sendMessage = (e) => {
     e.preventDefault();

@@ -93,6 +93,10 @@ public class ChatServiceImpl implements ChatService {
         boolean user1FollowsUser2 = user1.getFollowing().contains(user2);
         boolean user2FollowsUser1 = user2.getFollowing().contains(user1);
 
+        if (user1.getBlockedUsers().contains(user2) || user2.getBlockedUsers().contains(user1)) {
+            return false;
+        }
+
         return user1FollowsUser2 || user2FollowsUser1;
     }
 

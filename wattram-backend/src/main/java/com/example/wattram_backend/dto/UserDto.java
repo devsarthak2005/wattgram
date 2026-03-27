@@ -19,4 +19,10 @@ public class UserDto implements Serializable {
     private boolean isFollowing;
 
     private String profilePicture;
+
+    @JsonProperty("blockedByMe")
+    private boolean blockedByMe;
+
+    @JsonProperty("hasBlockedMe")
+    private boolean hasBlockedMe;
 }

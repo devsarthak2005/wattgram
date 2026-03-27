@@ -12,6 +12,8 @@ public interface UserService {
     UserDto getUserProfile(String targetUsername, String currentUsername);
     void followUser(String targetUsername, String currentUsername);
     void unfollowUser(String targetUsername, String currentUsername);
+    void blockUser(String targetUsername, String currentUsername);
+    void unblockUser(String targetUsername, String currentUsername);
     List<UserDto> searchUsers(String query, String currentUsername);
     Page<UserDto> searchAndFilterUsers(String keyword, Map<String, String> filters, Pageable pageable, String currentUsername);
     List<UserDto> getFollowers(String targetUsername, String currentUsername);

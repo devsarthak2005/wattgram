@@ -130,6 +130,25 @@ export const UserProfile = () => {
     }).catch(err => alert(err.message));
   };
 
+  const handleBlock = () => {
+    const token = localStorage.getItem('token');
+    if(!token) return alert('Please login to block');
+    const method = profile.blockedByMe ? 'DELETE' : 'POST';
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/${profile.username}/block`, {
+      method,
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(async res => {
+      if(!res.ok) throw new Error(await res.text());
+      setProfile(prev => ({
+        ...prev,
+        blockedByMe: !prev.blockedByMe,
+        following: !prev.blockedByMe ? false : prev.following,
+        followersCount: (!prev.blockedByMe && prev.following) ? prev.followersCount - 1 : prev.followersCount
+      }));
+    }).catch(err => alert(err.message));
+  };
+
   const handleSaveProfile = async () => {
     const token = localStorage.getItem('token');
     let profilePicUrl = profile.profilePicture;
@@ -212,12 +231,23 @@ export const UserProfile = () => {
           <Button variant="outline" className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>Edit Profile</Button>
         ) : (
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <Button variant={profile.following ? "outline" : "primary"} className="edit-profile-btn" onClick={handleFollow}>
-              {profile.following ? "Unfollow" : "Follow"}
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/chat', { state: { contact: profile } })}>
-              Message
-            </Button>
+            {profile.blockedByMe ? (
+              <Button variant="danger" className="edit-profile-btn" onClick={handleBlock}>
+                Unblock
+              </Button>
+            ) : (
+              <>
+                <Button variant={profile.following ? "outline" : "primary"} className="edit-profile-btn" onClick={handleFollow}>
+                  {profile.following ? "Unfollow" : "Follow"}
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/chat', { state: { contact: profile } })}>
+                  Message
+                </Button>
+                <Button variant="danger" className="edit-profile-btn" onClick={handleBlock}>
+                  Block
+                </Button>
+              </>
+            )}
           </div>
         )}
       </div>

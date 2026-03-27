@@ -36,8 +36,12 @@ public class UserServiceImpl implements UserService {
         
         if (currentUser != null && !currentUser.equals(user)) {
             dto.setFollowing(user.getFollowers().contains(currentUser));
+            dto.setBlockedByMe(currentUser.getBlockedUsers().contains(user));
+            dto.setHasBlockedMe(user.getBlockedUsers().contains(currentUser));
         } else {
             dto.setFollowing(false);
+            dto.setBlockedByMe(false);
+            dto.setHasBlockedMe(false);
         }
         return dto;
     }
@@ -110,6 +114,43 @@ public class UserServiceImpl implements UserService {
         
         target.getFollowers().remove(current);
         userRepository.save(target);
+    }
+
+    @Override
+    @CacheEvict(value = {"userProfiles", "users"}, allEntries = true)
+    public void blockUser(String targetUsername, String currentUsername) {
+        User current = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUsername));
+        
+        User target = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", targetUsername));
+        
+        if(current.getId().equals(target.getId())){
+            throw new APIException(HttpStatus.BAD_REQUEST, "You cannot block yourself");
+        }
+        
+        // Remove from followers/following
+        target.getFollowers().remove(current);
+        current.getFollowers().remove(target);
+        
+        if (!current.getBlockedUsers().contains(target)) {
+            current.getBlockedUsers().add(target);
+            userRepository.save(current);
+            userRepository.save(target);
+        }
+    }
+
+    @Override
+    @CacheEvict(value = {"userProfiles", "users"}, allEntries = true)
+    public void unblockUser(String targetUsername, String currentUsername) {
+        User current = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", currentUsername));
+        
+        User target = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", targetUsername));
+        
+        current.getBlockedUsers().remove(target);
+        userRepository.save(current);
     }
 
     @Override

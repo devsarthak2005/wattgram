@@ -52,4 +52,10 @@ public class User {
 
     @ManyToMany(mappedBy = "followers")
     private Set<User> following = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(name = "user_blocked", 
+               joinColumns = @JoinColumn(name = "user_id"), 
+               inverseJoinColumns = @JoinColumn(name = "blocked_id"))
+    private Set<User> blockedUsers = new HashSet<>();
 }
