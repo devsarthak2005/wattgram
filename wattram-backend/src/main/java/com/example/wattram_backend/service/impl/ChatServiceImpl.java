@@ -50,9 +50,13 @@ public class ChatServiceImpl implements ChatService {
 
         ChatMessageDto savedDto = mapToDto(savedMessage);
 
-        String cacheKey = getCacheKey(sender.getId(), receiver.getId());
-        redisTemplate.opsForList().rightPush(cacheKey, savedDto);
-        redisTemplate.opsForList().trim(cacheKey, -100, -1);
+        try {
+            String cacheKey = getCacheKey(sender.getId(), receiver.getId());
+            redisTemplate.opsForList().rightPush(cacheKey, savedDto);
+            redisTemplate.opsForList().trim(cacheKey, -100, -1);
+        } catch (Exception e) {
+            System.err.println("Redis caching failed for saving message: " + e.getMessage());
+        }
 
         return savedDto;
     }
@@ -62,11 +66,15 @@ public class ChatServiceImpl implements ChatService {
     public List<ChatMessageDto> getChatHistory(Long userId1, Long userId2) {
         String cacheKey = getCacheKey(userId1, userId2);
         
-        List<Object> cachedMessages = redisTemplate.opsForList().range(cacheKey, 0, -1);
-        if (cachedMessages != null && !cachedMessages.isEmpty()) {
-            return cachedMessages.stream()
-                .map(msg -> (ChatMessageDto) msg)
-                .collect(Collectors.toList());
+        try {
+            List<Object> cachedMessages = redisTemplate.opsForList().range(cacheKey, 0, -1);
+            if (cachedMessages != null && !cachedMessages.isEmpty()) {
+                return cachedMessages.stream()
+                    .map(msg -> (ChatMessageDto) msg)
+                    .collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            System.err.println("Redis caching failed for getting history: " + e.getMessage());
         }
 
         User user1 = userRepository.findById(userId1).orElseThrow(() -> new ResourceNotFoundException("User", "id", String.valueOf(userId1)));
@@ -77,8 +85,12 @@ public class ChatServiceImpl implements ChatService {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
-        for (ChatMessageDto dto : dtos) {
-            redisTemplate.opsForList().rightPush(cacheKey, dto);
+        try {
+            for (ChatMessageDto dto : dtos) {
+                redisTemplate.opsForList().rightPush(cacheKey, dto);
+            }
+        } catch (Exception e) {
+            System.err.println("Redis caching failed for populating history: " + e.getMessage());
         }
         
         return dtos;
@@ -112,7 +124,7 @@ public class ChatServiceImpl implements ChatService {
         dto.setSenderId(message.getSender().getId());
         dto.setReceiverId(message.getReceiver().getId());
         dto.setContent(message.getContent());
-        dto.setTimestamp(message.getTimestamp());
+        dto.setTimestamp(message.getTimestamp() != null ? message.getTimestamp().toString() : null);
         return dto;
     }
 }
