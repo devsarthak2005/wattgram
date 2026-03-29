@@ -1,15 +1,7 @@
 pipeline {
     agent any
-    
-    tools {
-        // These tools must be configured in Jenkins 'Global Tool Configuration'
-        maven 'Maven 3' 
-        nodejs 'NodeJS 20' // Change to match your Jenkins NodeJS installation name
-        jdk 'JDK 17'       // Change to match your Jenkins JDK installation name
-    }
 
     environment {
-        // Example: Global environment variable setting for JVM
         MAVEN_OPTS = "-Xmx1024m"
     }
 
@@ -83,10 +75,10 @@ pipeline {
     
     post {
         success {
-            echo 'Pipeline completed successfully! 🎉'
+            echo 'Pipeline completed successfully! '
         }
         failure {
-            echo 'Pipeline failed. Please check the stage logs to investigate the issue. ❌'
+            echo 'Pipeline failed. Please check the stage logs to investigate the issue. '
         }
     }
 }
