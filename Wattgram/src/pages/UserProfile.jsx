@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Trash2, Calendar, MapPin, Link as LinkIcon, MessageCircle, Repeat2, Heart, Share, MoreHorizontal } from 'lucide-react';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
-import './UserProfile.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const UserProfile = () => {
   const { username } = useParams();
@@ -29,10 +29,8 @@ export const UserProfile = () => {
   const [isFollowersModalOpen, setIsFollowersModalOpen] = useState(false);
   const [isFollowingModalOpen, setIsFollowingModalOpen] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem('token');
-
-    // If viewing own profile and not logged in, redirect to login
     if (isOwnProfile && !token) {
       navigate('/login');
       return;
@@ -47,7 +45,6 @@ export const UserProfile = () => {
     fetch(profileUrl, { headers })
       .then(res => {
         if (res.status === 401 || res.status === 403) {
-          // Token expired or invalid - clear it and redirect to login
           localStorage.removeItem('token');
           localStorage.removeItem('user');
           navigate('/login');
@@ -85,10 +82,11 @@ export const UserProfile = () => {
             setDraftBlogs([]);
         });
     }
-  }, [username, isOwnProfile]);
+  }, [username, isOwnProfile, navigate]);
 
   const authorBlogs = userBlogs.filter(b => profile && b.authorName === profile.username);
 
+  // Remaining Handlers
   const handleDeleteClick = (blog) => {
     setBlogToDelete(blog);
     setIsDeleteModalOpen(true);
@@ -205,96 +203,240 @@ export const UserProfile = () => {
       .then(data => { setFollowing(data); setIsFollowingModalOpen(true); });
   };
 
-  if(!profile) return <div className="profile-container">Loading...</div>;
-  if(profile.fetchError) return <div className="profile-container">User not found or an error occurred.</div>;
+  if(!profile) return <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium">Loading profile...</div>;
+  if(profile.fetchError) return <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium">User not found or an error occurred.</div>;
 
   const displayBlogs = activeTab === 'stories' ? authorBlogs : draftBlogs;
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   return (
-    <div className="profile-container">
-      <div className="profile-header">
-        {profile.profilePicture ? (
-          <img src={profile.profilePicture} alt="Profile" className="profile-avatar-lg" style={{objectFit: 'cover'}} />
-        ) : (
-          <div className="profile-avatar-lg">{profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}</div>
-        )}
-        <div className="profile-info">
-          <h1 className="profile-name">{profile.name || profile.username}</h1>
-          <p className="profile-bio">{profile.bio || 'No bio yet.'}</p>
-          <div className="profile-stats">
-            <span><strong>{authorBlogs.length}</strong> Stories</span>
-            <span style={{cursor: 'pointer'}} onClick={fetchFollowers}><strong>{profile.followersCount}</strong> Followers</span>
-            <span style={{cursor: 'pointer'}} onClick={fetchFollowing}><strong>{profile.followingCount}</strong> Following</span>
-          </div>
+    <div className="flex flex-col w-full h-full relative">
+      {/* Sticky Top Header */}
+      <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[var(--color-border)] p-2 flex items-center gap-6 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
+          <svg viewBox="0 0 24 24" aria-hidden="true" className="w-5 h-5 fill-current"><g><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></g></svg>
+        </button>
+        <div>
+          <h1 className="text-xl font-bold leading-tight">{profile.name || profile.username}</h1>
+          <p className="text-[13px] text-[var(--color-text-secondary)] leading-tight">{authorBlogs.length} Posts</p>
         </div>
-        {isOwnProfile ? (
-          <Button variant="outline" className="edit-profile-btn" onClick={() => setIsEditModalOpen(true)}>Edit Profile</Button>
-        ) : (
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            {profile.blockedByMe ? (
-              <Button variant="danger" className="edit-profile-btn" onClick={handleBlock}>
-                Unblock
-              </Button>
+      </header>
+
+      {/* Banner & Avatar Profile Section */}
+      <div className="relative bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)]">
+        {/* Banner Placeholder */}
+        <div className="h-32 sm:h-48 bg-gray-300 dark:bg-gray-700 w-full relative overflow-hidden">
+           <div className="absolute inset-0 bg-blue-500/20"></div>
+        </div>
+
+        {/* Profile Info Row (Avatar + Action Buttons) */}
+        <div className="flex justify-between items-start px-4 pt-3 pb-4 relative">
+          {/* Avatar (Overlapping banner) */}
+          <div className="absolute -top-16 left-4 rounded-full border-4 border-[var(--color-bg-primary)] bg-[var(--color-bg-primary)]">
+            {profile.profilePicture ? (
+              <img src={profile.profilePicture} alt="Profile" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover" />
+            ) : (
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-3xl font-bold text-gray-500">
+                {profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+            )}
+          </div>
+
+          <div className="w-24 sm:w-32 h-12"></div> {/* Spacer for Avatar */}
+
+          <div className="flex items-center gap-2">
+            {isOwnProfile ? (
+              <button 
+                onClick={() => setIsEditModalOpen(true)}
+                className="px-4 py-1.5 border border-[var(--color-border)] rounded-full font-bold text-[15px] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+               >
+                Edit profile
+              </button>
             ) : (
               <>
-                <Button variant={profile.following ? "outline" : "primary"} className="edit-profile-btn" onClick={handleFollow}>
-                  {profile.following ? "Unfollow" : "Follow"}
-                </Button>
-                <Button variant="outline" onClick={() => navigate('/chat', { state: { contact: profile } })}>
-                  Message
-                </Button>
-                <Button variant="danger" className="edit-profile-btn" onClick={handleBlock}>
-                  Block
-                </Button>
+                <button className="p-2 border border-[var(--color-border)] rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
+                  <MoreHorizontal size={20} />
+                </button>
+                <button 
+                  onClick={() => navigate('/chat', { state: { contact: profile } })}
+                  className="p-2 border border-[var(--color-border)] rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors"
+                >
+                  <MessageCircle size={20} />
+                </button>
+                {profile.blockedByMe ? (
+                  <button 
+                    onClick={handleBlock}
+                    className="px-4 py-1.5 bg-red-500 text-white border border-red-500 rounded-full font-bold text-[15px] hover:bg-red-600 transition-colors"
+                  >
+                    Unblock
+                  </button>
+                ) : (
+                  <button 
+                    onClick={handleFollow}
+                    className={`px-4 py-1.5 rounded-full font-bold text-[15px] transition-colors ${profile.following ? 'border border-[var(--color-border)] hover:border-red-500 hover:text-red-500 hover:bg-red-500/10' : 'bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] hover:opacity-90'}`}
+                  >
+                    {profile.following ? "Following" : "Follow"}
+                  </button>
+                )}
               </>
             )}
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className="profile-content">
-        <div style={{display: 'flex', gap: '2rem', borderBottom: '1px solid #eee', marginBottom: '2rem'}}>
-          <button style={{background: 'none', border: 'none', padding: '0.5rem 0', fontWeight: 'bold', borderBottom: activeTab === 'stories' ? '2px solid #000' : 'none', color: activeTab === 'stories' ? '#000' : '#666', cursor: 'pointer'}} onClick={() => setActiveTab('stories')}>
-             {isOwnProfile ? 'Your Stories' : 'Stories'}
+        {/* User Details */}
+        <div className="px-4 pb-4">
+          <div>
+            <h1 className="text-xl font-extrabold text-[var(--color-text-primary)] leading-tight">{profile.name || profile.username}</h1>
+            <p className="text-[15px] text-[var(--color-text-secondary)]">@{profile.username}</p>
+          </div>
+          
+          <div className="mt-3 text-[15px] leading-snug">
+            {profile.bio || 'No bio yet.'}
+          </div>
+
+          <div className="flex flex-wrap gap-4 mt-3 text-[15px] text-[var(--color-text-secondary)]">
+            <span className="flex items-center gap-1"><Calendar size={16} /> Joined March 2026</span>
+          </div>
+
+          <div className="flex gap-4 mt-3 text-[15px]">
+            <button onClick={fetchFollowing} className="hover:underline group">
+              <span className="font-bold text-[var(--color-text-primary)]">{profile.followingCount}</span> <span className="text-[var(--color-text-secondary)]">Following</span>
+            </button>
+            <button onClick={fetchFollowers} className="hover:underline group">
+              <span className="font-bold text-[var(--color-text-primary)]">{profile.followersCount}</span> <span className="text-[var(--color-text-secondary)]">Followers</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex w-full border-b border-[var(--color-border)] mt-2">
+          <button 
+            className="flex-1 hover:bg-[var(--color-bg-tertiary)] transition-colors relative"
+            onClick={() => setActiveTab('stories')}
+          >
+            <div className={`py-4 font-bold ${activeTab === 'stories' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}>
+              Posts
+              {activeTab === 'stories' && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-[var(--color-accent)] rounded-t-full"></div>}
+            </div>
           </button>
           {isOwnProfile && (
-            <button style={{background: 'none', border: 'none', padding: '0.5rem 0', fontWeight: 'bold', borderBottom: activeTab === 'drafts' ? '2px solid #000' : 'none', color: activeTab === 'drafts' ? '#000' : '#666', cursor: 'pointer'}} onClick={() => setActiveTab('drafts')}>
-               Drafts
+            <button 
+              className="flex-1 hover:bg-[var(--color-bg-tertiary)] transition-colors relative"
+              onClick={() => setActiveTab('drafts')}
+            >
+              <div className={`py-4 font-bold ${activeTab === 'drafts' ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-text-secondary)]'}`}>
+                Drafts
+                {activeTab === 'drafts' && <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-[var(--color-accent)] rounded-t-full"></div>}
+              </div>
             </button>
           )}
         </div>
-        
-        <div className="profile-stories-list">
-          {displayBlogs.length > 0 ? displayBlogs.map(blog => (
-            <div key={blog.id} className="story-item">
-              {blog.image && (
-                <img src={blog.image} alt={blog.title} style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px', marginRight: '1rem' }} />
-              )}
-              <div className="story-item-info" style={{ flex: 1 }}>
-                <Link to={`/blog/${blog.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                  <h4 className="story-item-title">{blog.title}</h4>
+      </div>
+
+      {/* Posts List */}
+      <div className="flex-1 min-h-[50vh]">
+        <AnimatePresence>
+          {displayBlogs.length > 0 ? displayBlogs.map(blog => {
+            const authorText = blog.authorName || profile.name || profile.username;
+            const handleText = `@${profile.username}`;
+            
+            return (
+              <motion.div 
+                key={blog.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Link to={`/blog/${blog.id}`} className="block border-b border-[var(--color-border)] p-4 hover:bg-[var(--color-bg-secondary)] transition-colors overflow-hidden group/post">
+                  <div className="flex gap-3 relative">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full border flex-shrink-0 bg-gray-200 overflow-hidden">
+                       {profile.profilePicture ? (
+                         <img src={profile.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                       ) : (
+                         <div className="w-full h-full flex items-center justify-center font-bold text-gray-500">{profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}</div>
+                       )}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <div className="flex items-center gap-1 text-[15px] truncate">
+                          <span className="font-bold text-[var(--color-text-primary)] hover:underline truncate">{authorText}</span>
+                          <span className="text-[var(--color-text-secondary)] truncate">{handleText}</span>
+                          <span className="text-[var(--color-text-secondary)]">·</span>
+                          <span className="text-[var(--color-text-secondary)] hover:underline flex-shrink-0">{formatDate(blog.date)}</span>
+                          {blog.draft && <span className="ml-2 text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full font-bold">Draft</span>}
+                        </div>
+                        {isOwnProfile && (
+                           <div className="flex gap-1 opacity-0 group-hover/post:opacity-100 transition-opacity">
+                             <button className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-full" onClick={(e) => { e.preventDefault(); /* nav to edit */ }}>
+                               <Edit2 size={16} />
+                             </button>
+                             <button className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full" onClick={(e) => { e.preventDefault(); handleDeleteClick(blog); }}>
+                               <Trash2 size={16} />
+                             </button>
+                           </div>
+                        )}
+                      </div>
+                      
+                      <div className="text-[15px] text-[var(--color-text-primary)] w-full break-words whitespace-pre-wrap">
+                        {blog.preview || blog.title}
+                      </div>
+
+                      {blog.image && (
+                        <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)]">
+                          <img 
+                            src={blog.image} 
+                            alt="Post Media" 
+                            className="absolute inset-0 w-full h-full object-cover"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+
+                      {!blog.draft && (
+                        <div className="flex items-center justify-between mt-3 max-w-md text-[var(--color-text-secondary)]">
+                          <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                            <div className="p-2 -m-2 rounded-full group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-colors">
+                              <MessageCircle size={18} />
+                            </div>
+                          </button>
+                          <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                            <div className="p-2 -m-2 rounded-full group-hover:bg-green-500/10 group-hover:text-green-500 transition-colors">
+                              <Repeat2 size={18} />
+                            </div>
+                          </button>
+                          <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                            <div className="p-2 -m-2 rounded-full group-hover:bg-pink-500/10 group-hover:text-pink-500 transition-colors">
+                              <Heart size={18} />
+                            </div>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </Link>
-                <div className="story-item-meta">
-                  <span>{blog.draft ? 'Draft saved on' : 'Published on'} {new Date(blog.date).toLocaleDateString()}</span>
-                  <span className="story-category">{blog.category}</span>
-                </div>
-              </div>
-              {isOwnProfile && (
-                <div className="story-item-actions">
-                  <button className="icon-btn edit-btn"><Edit2 size={18} /></button>
-                  <button 
-                    className="icon-btn delete-btn" 
-                    onClick={() => handleDeleteClick(blog)}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
+              </motion.div>
+            );
+          }) : (
+            <div className="p-8 text-center text-[var(--color-text-secondary)] mt-8">
+              {isOwnProfile ? (
+                 <>
+                   <h2 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">No {activeTab} yet</h2>
+                   <p>When you post something, it will show up here.</p>
+                 </>
+              ) : (
+                <p>@{profile.username} hasn't posted anything yet.</p>
               )}
             </div>
-          )) : (
-            <div className="empty-stories">No {activeTab} yet.</div>
           )}
-        </div>
+        </AnimatePresence>
       </div>
 
       <Modal 

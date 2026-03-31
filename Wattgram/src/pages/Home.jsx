@@ -1,139 +1,129 @@
-import React, { useState } from 'react';
-import { Card, CardHeader, CardContent } from '../components/Card';
-import { Input } from '../components/Input';
-import { Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Heart, MessageCircle, Repeat2, Share } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import './Home.css';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CreatePostInline } from '../components/CreatePostInline';
 
 export const Home = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
+  const [blogs, setBlogs] = useState([]);
 
-  const categories = ['All', 'Design', 'Development', 'Typography', 'Life'];
-
-  const [blogs, setBlogs] = React.useState([]);
-  const [users, setUsers] = React.useState([]);
-  const [userPage, setUserPage] = useState(0);
-  const [hasMoreUsers, setHasMoreUsers] = useState(false);
-
-  React.useEffect(() => {
+  useEffect(() => {
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/blogs`)
       .then(res => {
         if (!res.ok) throw new Error('Server returned ' + res.status);
         return res.json();
       })
-      .then(data => setBlogs(Array.isArray(data) ? data : []))
+      .then(data => {
+        setBlogs(Array.isArray(data) ? data : []);
+      })
       .catch(err => {
         console.error("Error fetching blogs:", err);
         setBlogs([]);
       });
   }, []);
 
-  React.useEffect(() => {
-    if (searchQuery.trim() === '') {
-      setUsers([]);
-      setHasMoreUsers(false);
-      return;
-    }
-    
-    // When exactly searchQuery changes, reset page to 0
-    setUserPage(0);
-  }, [searchQuery]);
+  const handlePostCreated = (newPost) => {
+    setBlogs(prev => [newPost, ...prev]);
+  };
 
-  React.useEffect(() => {
-    if (searchQuery.trim() === '') return;
-
-    const token = localStorage.getItem('token');
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users?keyword=${searchQuery}&page=${userPage}&size=10`, {
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (userPage === 0) {
-          setUsers(data.content || []);
-        } else {
-          setUsers(prev => [...prev, ...(data.content || [])]);
-        }
-        setHasMoreUsers(!data.last);
-      })
-      .catch(err => console.error("Error fetching users:", err));
-  }, [searchQuery, userPage]);
-
-  const filteredBlogs = blogs.filter(blog => {
-    const titleMatch = blog.title?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-    const authorMatch = blog.authorName?.toLowerCase().includes(searchQuery.toLowerCase()) || false;
-    const matchesCategory = activeCategory === 'All' || blog.category === activeCategory;
-    return (titleMatch || authorMatch) && matchesCategory;
-  });
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
   return (
-    <div className="home-container">
-      <div className="home-header">
-        <h1 className="home-title">Your Daily Digest</h1>
-        <p className="home-subtitle">Discover stories, thinking, and expertise from writers on any topic.</p>
-      </div>
+    <div className="flex flex-col w-full h-full">
+      {/* Sticky Top Header */}
+      <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[var(--color-border)] p-4 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <h1 className="text-xl font-bold">Home</h1>
+      </header>
 
-      <div className="home-controls">
-        <div className="search-bar">
-          <Search className="search-icon" size={20} />
-          <input
-            type="text"
-            placeholder="Search blogs or users..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="search-input"
-          />
-        </div>
+      {/* Inline Create Post Component */}
+      <CreatePostInline onPostCreated={handlePostCreated} />
 
-        <div className="category-filters">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {users.length > 0 && (
-        <div style={{ marginBottom: '2rem' }}>
-          <h3 style={{ marginBottom: '1rem' }}>Found Users</h3>
-          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            {users.map(u => (
-              <Link to={`/profile/${u.username}`} key={u.id} style={{ padding: '0.8rem 1.2rem', background: '#f0f0f0', borderRadius: '50px', textDecoration: 'none', color: '#333', fontWeight: '500' }}>
-                @{u.username} ({u.name || 'No Name'})
-              </Link>
-            ))}
-            {hasMoreUsers && (
-              <button 
-                onClick={() => setUserPage(p => p + 1)}
-                style={{ padding: '0.8rem 1.2rem', background: 'transparent', border: '1px solid #333', borderRadius: '50px', cursor: 'pointer', fontWeight: '500' }}
+      {/* Feed */}
+      <div className="flex-1">
+        <AnimatePresence>
+          {blogs.map(blog => {
+            const authorText = blog.authorName || blog.author?.name || 'Anonymous';
+            const handleText = `@${authorText.toLowerCase().replace(/\s+/g, '')}`;
+            
+            return (
+              <motion.div 
+                key={blog.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
               >
-                Load More
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+                <Link to={`/blog/${blog.id}`} className="block border-b border-[var(--color-border)] p-4 hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer">
+                  <div className="flex gap-3">
+                    {/* Avatar */}
+                    <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0"></div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 text-[15px] mb-1">
+                        <span className="font-bold text-[var(--color-text-primary)] hover:underline truncate">{authorText}</span>
+                        <span className="text-[var(--color-text-secondary)] truncate">{handleText}</span>
+                        <span className="text-[var(--color-text-secondary)]">·</span>
+                        <span className="text-[var(--color-text-secondary)] hover:underline flex-shrink-0">{formatDate(blog.date)}</span>
+                      </div>
+                      
+                      <div className="text-[15px] text-[var(--color-text-primary)] w-full break-words whitespace-pre-wrap">
+                        {blog.preview || blog.title}
+                      </div>
 
-      <div className="blog-feed">
-        {filteredBlogs.map(blog => (
-          <Link to={`/blog/${blog.id}`} key={blog.id} className="blog-card-link">
-            <Card className="blog-card">
-              <CardHeader title={blog.title} authorDetails={blog.authorName || blog.author?.name} meta={blog.date} />
-              <CardContent>
-                <p>{blog.preview}</p>
-                <span className="blog-category">{blog.category}</span>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-        {filteredBlogs.length === 0 && (
-          <div className="empty-state">
-            <p>No blogs found matching your search.</p>
+                      {blog.image && (
+                        <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)]">
+                          <img 
+                            src={blog.image} 
+                            alt="Post Media" 
+                            className="absolute inset-0 w-full h-full object-cover"
+                            onError={(e) => { e.target.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Action buttons */}
+                      <div className="flex items-center justify-between mt-3 max-w-md text-[var(--color-text-secondary)]">
+                        <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                          <div className="p-2 -m-2 rounded-full group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-colors">
+                            <MessageCircle size={18} />
+                          </div>
+                          <span className="text-xs group-hover:text-blue-500">12</span>
+                        </button>
+                        <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                          <div className="p-2 -m-2 rounded-full group-hover:bg-green-500/10 group-hover:text-green-500 transition-colors">
+                            <Repeat2 size={18} />
+                          </div>
+                          <span className="text-xs group-hover:text-green-500">5</span>
+                        </button>
+                        <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                          <div className="p-2 -m-2 rounded-full group-hover:bg-pink-500/10 group-hover:text-pink-500 transition-colors">
+                            <Heart size={18} />
+                          </div>
+                          <span className="text-xs group-hover:text-pink-500">48</span>
+                        </button>
+                        <button className="flex items-center gap-2 group p-0 m-0" onClick={(e) => e.preventDefault()}>
+                          <div className="p-2 -m-2 rounded-full group-hover:bg-blue-500/10 group-hover:text-blue-500 transition-colors">
+                            <Share size={18} />
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
+        {blogs.length === 0 && (
+          <div className="p-8 text-center text-[var(--color-text-secondary)]">
+            <p className="text-lg font-bold mb-2">Welcome to Wattgram!</p>
+            <p>No posts yet. Be the first to share your thoughts above.</p>
           </div>
         )}
       </div>

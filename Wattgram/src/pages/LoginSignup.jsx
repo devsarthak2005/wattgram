@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
-import './LoginSignup.css';
 
 export const LoginSignup = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -51,16 +50,23 @@ export const LoginSignup = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2 className="auth-title">{isLogin ? 'Welcome back' : 'Join Wattgram'}</h2>
-        <p className="auth-subtitle">
-          {isLogin 
-            ? 'Enter your details to access your account.' 
-            : 'Create an account to start writing and reading stories.'}
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-secondary)] p-4">
+      <div className="w-full max-w-[440px] bg-[var(--color-bg-primary)] rounded-3xl p-8 sm:p-10 shadow-lg border border-[var(--color-border)]">
+        <div className="text-center mb-8">
+          <div className="mx-auto w-12 h-12 bg-[var(--color-accent)] rounded-xl flex items-center justify-center mb-6 shadow-sm">
+             <span className="text-white font-bold text-2xl">W</span>
+          </div>
+          <h2 className="text-3xl font-extrabold text-[var(--color-text-primary)] mb-2 tracking-tight">
+            {isLogin ? 'Welcome back' : 'Join Wattgram'}
+          </h2>
+          <p className="text-[15px] text-[var(--color-text-secondary)]">
+            {isLogin 
+              ? 'Enter your details to access your account.' 
+              : 'Create an account to start sharing and reading posts.'}
+          </p>
+        </div>
         
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           {!isLogin && (
             <>
               <Input 
@@ -98,15 +104,20 @@ export const LoginSignup = () => {
             required 
           />
           
-          <Button type="submit" className="auth-submit-btn" size="lg">
+          <button 
+            type="submit" 
+            className="w-full mt-4 py-3 bg-[var(--color-text-primary)] text-[var(--color-bg-primary)] rounded-full font-bold text-[15px] hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+          >
             {isLogin ? 'Sign In' : 'Create Account'}
-          </Button>
+          </button>
         </form>
 
-        <div className="auth-switch">
-          <span>{isLogin ? "Don't have an account?" : "Already have an account?"}</span>
+        <div className="mt-8 pt-6 border-t border-[var(--color-border)] text-center text-[15px] flex items-center justify-center gap-2">
+          <span className="text-[var(--color-text-secondary)]">
+            {isLogin ? "Don't have an account?" : "Already have an account?"}
+          </span>
           <button 
-            className="auth-switch-btn" 
+            className="font-bold text-[var(--color-accent)] hover:text-blue-600 hover:underline transition-colors" 
             onClick={() => setIsLogin(!isLogin)}
           >
             {isLogin ? 'Sign Up' : 'Log In'}

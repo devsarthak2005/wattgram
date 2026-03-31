@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
-import { Button } from '../components/Button';
-import './BlogDetail.css';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { Heart, MessageCircle, Share2, MoreHorizontal, ArrowLeft, Repeat2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const BlogDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [blog, setBlog] = useState(null);
   const [likes, setLikes] = useState(0);
   const [hasLiked, setHasLiked] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const token = localStorage.getItem('token');
     const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -31,7 +31,7 @@ export const BlogDetail = () => {
       .catch(err => console.error(err));
   }, [id]);
 
-  if (!blog) return <div className="blog-detail-container">Loading...</div>;
+  if (!blog) return <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium">Loading post...</div>;
 
   const handleLike = () => {
     const token = localStorage.getItem('token');
@@ -66,7 +66,7 @@ export const BlogDetail = () => {
         body: JSON.stringify({ content: newComment })
     }).then(res => res.json())
       .then(data => {
-          setComments([...comments, data]);
+          setComments([data, ...comments]);
           setNewComment('');
       });
   };
@@ -80,81 +80,143 @@ export const BlogDetail = () => {
     });
   };
 
-  return (
-    <article className="blog-detail-container">
-      <header className="blog-header">
-        <h1 className="blog-title">{blog.title}</h1>
-        
-        <div className="blog-author-block">
-          <div className="author-avatar">{blog.authorName ? blog.authorName.charAt(0).toUpperCase() : 'U'}</div>
-          <div className="author-info">
-            <Link to={`/profile/${blog.authorName}`} className="author-name" style={{ textDecoration: 'none', color: 'inherit' }}>
-              {blog.authorName}
-            </Link>
-            <div className="author-meta">
-              <span className="blog-date">{new Date(blog.date).toLocaleDateString()}</span>
-              <span>·</span>
-              <span>5 min read</span>
-            </div>
-          </div>
-        </div>
+  const authorText = blog.authorName || (blog.author && blog.author.username) || 'Anonymous';
+  const handleText = `@${authorText.toLowerCase().replace(/\s+/g, '')}`;
 
-        <div className="blog-actions">
-          <div className="action-group">
-            <button className={`action-btn ${hasLiked ? 'liked' : ''}`} onClick={handleLike}>
-              <Heart size={20} fill={hasLiked ? 'currentColor' : 'none'} />
-              <span>{likes}</span>
-            </button>
-            <button className="action-btn">
-              <MessageCircle size={20} />
-              <span>{comments.length}</span>
-            </button>
-          </div>
-          <div className="action-group">
-            <button className="action-btn" onClick={handleShare}><Share2 size={20} /></button>
-            <button className="action-btn"><MoreHorizontal size={20} /></button>
-          </div>
-        </div>
+  const formatDate = (dateString, full = false) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (full) {
+      return date.toLocaleDateString('en-US', { hour: 'numeric', minute: 'numeric', year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  return (
+    <div className="flex flex-col w-full min-h-screen bg-[var(--color-bg-primary)]">
+      {/* Sticky Header */}
+      <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[var(--color-border)] p-2 flex items-center gap-6 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
+           <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-xl font-bold">Post</h1>
       </header>
       
-      {blog.image && (
-        <div className="blog-cover-image" style={{ marginBottom: '2rem' }}>
-          <img src={blog.image} alt={blog.title} style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '8px' }} />
+      {/* Main Post Content */}
+      <article className="p-4 border-b border-[var(--color-border)]">
+        {/* Author Header */}
+        <div className="flex items-center justify-between mb-3">
+          <Link to={`/profile/${authorText}`} className="flex items-center gap-3 w-full group">
+            <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center font-bold text-gray-500">
+               {authorText.charAt(0).toUpperCase()}
+            </div>
+            <div>
+               <div className="font-bold text-[17px] text-[var(--color-text-primary)] group-hover:underline leading-tight">{authorText}</div>
+               <div className="text-[15px] text-[var(--color-text-secondary)] leading-tight">{handleText}</div>
+            </div>
+          </Link>
+          <button className="p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors flex-shrink-0">
+            <MoreHorizontal size={20} />
+          </button>
         </div>
-      )}
 
-      <div className="blog-content">
-        <p className="blog-lead">{blog.preview}</p>
-        <p>{blog.content}</p>
+        {/* Post Body */}
+        <div className="text-[17px] text-[var(--color-text-primary)] leading-normal whitespace-pre-wrap break-words mt-2">
+          {blog.preview && <span className="font-bold block mb-2">{blog.title}</span>}
+          {blog.content || blog.preview}
+        </div>
+
+        {blog.image && (
+          <div className="mt-4 rounded-2xl overflow-hidden border border-[var(--color-border)] w-full">
+            <img src={blog.image} alt={blog.title} className="w-full object-cover max-h-[500px]" />
+          </div>
+        )}
+
+        {/* Post Metadata (Date/Views) */}
+        <div className="text-[15px] text-[var(--color-text-secondary)] mt-4 py-4 border-b border-[var(--color-border)]">
+          {formatDate(blog.date, true)} · <strong>{(likes * 2) + 24}</strong> Views
+        </div>
+
+        {/* Post Actions (Likes, Retweets, etc) */}
+        <div className="flex items-center justify-around py-2 border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
+          <button className="flex items-center gap-2 group p-2 rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors flex-1 justify-center">
+            <MessageCircle size={22} />
+            <span className="text-[15px]">{comments.length}</span>
+          </button>
+          <button className="flex items-center gap-2 group p-2 rounded-full hover:bg-green-500/10 hover:text-green-500 transition-colors flex-1 justify-center">
+            <Repeat2 size={22} />
+          </button>
+          <button 
+            className={`flex items-center gap-2 group p-2 rounded-full transition-colors flex-1 justify-center ${hasLiked ? 'text-pink-600' : 'hover:bg-pink-500/10 hover:text-pink-500'}`} 
+            onClick={handleLike}
+          >
+            <Heart size={22} fill={hasLiked ? 'currentColor' : 'none'} />
+            <span className="text-[15px]">{likes}</span>
+          </button>
+          <button className="flex items-center gap-2 group p-2 rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors flex-1 justify-center" onClick={handleShare}>
+            <Share2 size={22} />
+          </button>
+        </div>
+      </article>
+
+      {/* Reply Input Area */}
+      <div className="p-4 border-b border-[var(--color-border)] flex gap-3 items-center">
+        <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0"></div>
+        <div className="flex-1 flex gap-2 items-center">
+          <input 
+            type="text" 
+            placeholder="Post your reply" 
+            className="flex-1 bg-transparent border-none outline-none text-[17px] text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]"
+            value={newComment}
+            onChange={e => setNewComment(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCommentSubmit()}
+          />
+          <button 
+            className="px-4 py-1.5 bg-[var(--color-accent)] text-white font-bold rounded-full disabled:opacity-50 transition-opacity"
+            disabled={!newComment.trim()}
+            onClick={handleCommentSubmit}
+          >
+            Reply
+          </button>
+        </div>
       </div>
 
-      <hr className="blog-divider" />
-      
-      <section className="comments-section">
-        <h3>Responses ({comments.length})</h3>
-        <div className="comment-box">
-          <textarea 
-             placeholder="What are your thoughts?" 
-             className="comment-input"
-             value={newComment}
-             onChange={e => setNewComment(e.target.value)}
-          ></textarea>
-          <div className="comment-actions">
-            <Button size="sm" onClick={handleCommentSubmit}>Respond</Button>
-          </div>
-        </div>
-        <div className="comments-list" style={{ marginTop: '2rem' }}>
-          {comments.map(c => (
-             <div key={c.id} style={{ marginBottom: '1.5rem', padding: '1rem', background: '#f9f9f9', borderRadius: '8px' }}>
-                <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                   <Link to={`/profile/${c.authorName}`} style={{ textDecoration: 'none', color: 'inherit' }}>{c.authorName}</Link>
-                   <span style={{fontSize: '0.8rem', color: '#666', marginLeft: '0.5rem'}}>{new Date(c.date).toLocaleDateString()}</span>
-                </div>
-                <div>{c.content}</div>
-             </div>
-          ))}
-        </div>
-      </section>
-    </article>
+      {/* Comments Feed */}
+      <div className="flex-1 pb-16">
+        {comments.map(c => {
+           const commentAuthor = c.authorName || 'User';
+           const commentHandle = `@${commentAuthor.toLowerCase().replace(/\s+/g, '')}`;
+           return (
+             <motion.div 
+               key={c.id} 
+               initial={{ opacity: 0 }} 
+               animate={{ opacity: 1 }} 
+               className="p-4 border-b border-[var(--color-border)] flex gap-3 hover:bg-[var(--color-bg-secondary)] transition-colors"
+             >
+               <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center font-bold text-gray-500">
+                 {commentAuthor.charAt(0).toUpperCase()}
+               </div>
+               <div className="flex-1 min-w-0">
+                 <div className="flex flex-wrap items-center gap-1 text-[15px] mb-1 leading-tight">
+                   <Link to={`/profile/${commentAuthor}`} className="font-bold text-[var(--color-text-primary)] hover:underline truncate">{commentAuthor}</Link>
+                   <span className="text-[var(--color-text-secondary)] truncate">{commentHandle}</span>
+                   <span className="text-[var(--color-text-secondary)]">·</span>
+                   <span className="text-[var(--color-text-secondary)] hover:underline flex-shrink-0">{formatDate(c.date)}</span>
+                 </div>
+                 <div className="text-[15px] text-[var(--color-text-primary)] whitespace-pre-wrap break-words pb-2">
+                   {c.content}
+                 </div>
+                 
+                 <div className="flex items-center justify-between mt-1 text-[var(--color-text-secondary)] max-w-sm">
+                    <button className="flex items-center gap-2 group p-0 m-0"><div className="p-2 -m-2 rounded-full group-hover:bg-blue-500/10 group-hover:text-blue-500"><MessageCircle size={16} /></div></button>
+                    <button className="flex items-center gap-2 group p-0 m-0"><div className="p-2 -m-2 rounded-full group-hover:bg-green-500/10 group-hover:text-green-500"><Repeat2 size={16} /></div></button>
+                    <button className="flex items-center gap-2 group p-0 m-0"><div className="p-2 -m-2 rounded-full group-hover:bg-pink-500/10 group-hover:text-pink-500"><Heart size={16} /></div></button>
+                 </div>
+               </div>
+             </motion.div>
+           );
+        })}
+      </div>
+    </div>
   );
 };

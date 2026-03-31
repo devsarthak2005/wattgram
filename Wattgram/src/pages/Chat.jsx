@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Send, User as UserIcon, MessageCircle } from 'lucide-react';
-import './Chat.css';
+import { Send, User as UserIcon, MessageCircle, ArrowLeft } from 'lucide-react';
 
 export const Chat = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [contacts, setContacts] = useState([]);
   const [selectedContact, setSelectedContact] = useState(() => {
     const saved = localStorage.getItem('lastChatContact');
@@ -18,6 +18,7 @@ export const Chat = () => {
       localStorage.setItem('lastChatContact', JSON.stringify(selectedContact));
     }
   }, [selectedContact]);
+  
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const stompClient = useRef(null);
@@ -71,7 +72,6 @@ export const Chat = () => {
         client.subscribe(`/topic/messages/${currentUserId}`, (msg) => {
            const newMsg = JSON.parse(msg.body);
            setMessages(prev => {
-             // Avoid duplicates if we receive what we sent, though our backend only sends to receiver
              if (prev.some(m => m.id === newMsg.id && m.id !== undefined)) return prev;
              return [...prev, newMsg];
            });
@@ -149,85 +149,119 @@ export const Chat = () => {
     setInputMessage('');
   };
 
-  if (isLoadingUser) return <div className="chat-container auth-msg">Loading chat...</div>;
-  if (!currentUser) return <div className="chat-container auth-msg">Please log in to use chat.</div>;
+  if (isLoadingUser) return <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium">Loading chat...</div>;
+  if (!currentUser) return <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium">Please log in to use chat.</div>;
 
+  // Render Mobile/Narrow Layout where it's either contacts list or chat view
   return (
-    <div className="chat-container">
-      <div className="chat-sidebar">
-        <h2 className="sidebar-title">Contacts</h2>
-        {contacts.length === 0 ? (
-          <p className="no-contacts">You need to follow someone or let them follow you to start a chat.</p>
-        ) : (
-          <ul className="contacts-list">
-            {contacts.map(c => (
-              <li 
-                key={c.id} 
-                className={`contact-item ${selectedContact?.id === c.id ? 'active' : ''}`}
-                onClick={() => selectContact(c)}
-              >
-                {c.profilePicture ? (
-                  <img src={c.profilePicture} alt={c.name} className="contact-avatar" />
-                ) : (
-                  <div className="contact-avatar-placeholder"><UserIcon size={16} /></div>
-                )}
-                <div className="contact-info">
-                  <span className="contact-name">{c.name}</span>
-                  <span className="contact-username">@{c.username}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className="chat-main">
-        {selectedContact ? (
-          <>
-            <div className="chat-header">
-              {selectedContact.profilePicture ? (
-                <img src={selectedContact.profilePicture} alt={selectedContact.name} className="contact-avatar" />
-              ) : (
-                <div className="contact-avatar-placeholder"><UserIcon size={16} /></div>
-              )}
-              <div className="chat-header-info">
-                <h3>{selectedContact.name}</h3>
-                <span>@{selectedContact.username}</span>
-              </div>
-            </div>
-            <div className="chat-messages">
-              {messages.map((m, idx) => {
-                const isMine = m.senderId === currentUserId;
-                return (
-                  <div key={m.id || idx} className={`message-bubble ${isMine ? 'mine' : 'theirs'}`}>
-                    <div className="message-content">{m.content}</div>
-                    <div className="message-time">
-                      {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
+    <div className="flex flex-col w-full h-full min-h-[calc(100vh-64px)] bg-[var(--color-bg-primary)]">
+       {/* Sticky Top Header */}
+       <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[var(--color-border)] p-2 flex items-center justify-between cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+        <div className="flex items-center gap-4">
+          {selectedContact && (
+            <button onClick={() => setSelectedContact(null)} className="p-2 sm:hidden rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
+              <ArrowLeft size={20} />
+            </button>
+          )}
+          <h1 className="text-xl font-bold ml-2">Messages</h1>
+        </div>
+      </header>
+      
+      <div className="flex flex-1 overflow-hidden h-full">
+        {/* Contacts Sidebar (Hidden on mobile if a contact is selected) */}
+        <div className={`w-full sm:w-[250px] border-r border-[var(--color-border)] overflow-y-auto ${selectedContact ? 'hidden sm:block' : 'block'}`}>
+          {contacts.length === 0 ? (
+            <p className="p-8 text-center text-[var(--color-text-secondary)] text-sm">You need to follow someone or let them follow you to start a chat.</p>
+          ) : (
+            <ul className="flex flex-col">
+              {contacts.map(c => (
+                <li 
+                  key={c.id} 
+                  className={`flex items-center gap-3 p-4 border-b border-[var(--color-border)] cursor-pointer transition-colors ${selectedContact?.id === c.id ? 'bg-[var(--color-bg-tertiary)] border-r-4 border-r-[var(--color-accent)]' : 'hover:bg-[var(--color-bg-secondary)]'}`}
+                  onClick={() => selectContact(c)}
+                >
+                  <div className="w-12 h-12 rounded-full border flex-shrink-0 bg-gray-200 overflow-hidden">
+                    {c.profilePicture ? (
+                      <img src={c.profilePicture} alt={c.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-bold text-gray-500"><UserIcon size={20} /></div>
+                    )}
                   </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
+                  <div className="overflow-hidden flex-1">
+                    <div className="font-bold text-[15px] truncate text-[var(--color-text-primary)]">{c.name}</div>
+                    <div className="text-[13px] text-[var(--color-text-secondary)] truncate">@{c.username}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Chat Main Area */}
+        <div className={`flex flex-col flex-1 h-full max-h-[calc(100vh-64px)] relative ${!selectedContact ? 'hidden sm:flex' : 'flex'}`}>
+          {selectedContact ? (
+            <>
+              {/* Chat Header */}
+              <div className="p-3 border-b border-[var(--color-border)] flex items-center gap-3 bg-[var(--color-bg-primary)]/90 backdrop-blur-md sticky top-0 z-10">
+                 <div className="w-10 h-10 rounded-full border flex-shrink-0 bg-gray-200 overflow-hidden">
+                    {selectedContact.profilePicture ? (
+                      <img src={selectedContact.profilePicture} alt={selectedContact.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-bold text-gray-500"><UserIcon size={20} /></div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[var(--color-text-primary)] leading-tight">{selectedContact.name}</h3>
+                    <span className="text-[13px] text-[var(--color-text-secondary)]">@{selectedContact.username}</span>
+                  </div>
+              </div>
+
+              {/* Messages Area */}
+              <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-2">
+                {messages.map((m, idx) => {
+                  const isMine = m.senderId === currentUserId;
+                  return (
+                    <div key={m.id || idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMine ? 'bg-[var(--color-accent)] text-white rounded-tr-sm' : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-tl-sm'}`}>
+                        <div className="text-[15px] break-words">{m.content}</div>
+                        <div className={`text-[11px] mt-1 text-right ${isMine ? 'text-blue-100' : 'text-[var(--color-text-secondary)]'}`}>
+                          {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input Area */}
+              <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-bg-primary)] mt-auto mb-16 xl:mb-0">
+                <form className="flex items-center gap-2 bg-[var(--color-bg-secondary)] rounded-full px-4 py-1.5" onSubmit={sendMessage}>
+                  <input 
+                    type="text" 
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    placeholder="Start a new message" 
+                    className="flex-1 bg-transparent border-none outline-none text-[15px] text-[var(--color-text-primary)] py-2"
+                  />
+                  <button 
+                    type="submit" 
+                    className={`p-2 rounded-full transition-colors ${inputMessage.trim() ? 'text-[var(--color-accent)] hover:bg-blue-500/10' : 'text-gray-400'}`}
+                    disabled={!inputMessage.trim()}
+                  >
+                    <Send size={20} />
+                  </button>
+                </form>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-[var(--color-text-secondary)] p-8">
+              <MessageCircle size={64} className="mb-4 opacity-20" />
+              <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Select a message</h3>
+              <p className="text-center max-w-xs">Choose from your existing conversations, start a new one, or just keep swimming.</p>
             </div>
-            <form className="chat-input-area" onSubmit={sendMessage}>
-              <input 
-                type="text" 
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type a message..." 
-                className="chat-input"
-              />
-              <button type="submit" className="chat-send-btn">
-                <Send size={20} />
-              </button>
-            </form>
-          </>
-        ) : (
-          <div className="chat-placeholder">
-            <MessageCircle size={48} />
-            <h3>Your Messages</h3>
-            <p>Select a contact to start chatting.</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { Button } from '../components/Button';
-import './CreateBlog.css';
+import { useNavigate } from 'react-router-dom';
 
 export const CreateBlog = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState(null);
+  const navigate = useNavigate();
   
   const handlePublish = async (isDraft = false) => {
     const token = localStorage.getItem('token');
@@ -57,35 +58,54 @@ export const CreateBlog = () => {
       return res.json();
     })
     .then(data => {
-      window.location.href = `/blog/${data.id}`;
+      navigate(`/blog/${data.id}`);
     })
     .catch(err => alert(err.message));
   };
 
   return (
-    <div className="create-blog-container">
-      <div className="create-blog-header" style={{flexDirection: 'column', alignItems: 'flex-start', gap: '1rem'}}>
-        <div style={{width: '100%', display: 'flex', justifyContent: 'space-between'}}>
-          <input 
-            type="text" 
-            className="create-blog-title" 
-            placeholder="Title" 
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            style={{flex: 1}}
-          />
-          <div className="create-blog-actions">
-            <Button variant="ghost" onClick={() => handlePublish(true)}>Save Draft</Button>
-            <Button variant="primary" onClick={() => handlePublish(false)}>Publish</Button>
-          </div>
+    <div className="flex flex-col w-full min-h-screen bg-[var(--color-bg-primary)] p-4 md:p-6 lg:p-8">
+      {/* Header / Actions */}
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-[var(--color-border)]">
+        <input 
+          type="text" 
+          className="flex-1 bg-transparent border-none outline-none text-3xl font-bold text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] placeholder-opacity-50" 
+          placeholder="New Post Title Here..." 
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <div className="flex items-center gap-3 self-end md:self-auto">
+          <button 
+            className="px-4 py-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] rounded-full font-bold transition-colors" 
+            onClick={() => handlePublish(true)}
+          >
+            Save Draft
+          </button>
+          <button 
+            className="px-6 py-2 bg-[var(--color-accent)] text-white hover:bg-blue-600 rounded-full font-bold transition-colors shadow-sm"
+            onClick={() => handlePublish(false)}
+          >
+            Publish
+          </button>
         </div>
-        <div style={{display: 'flex', alignItems: 'center', gap: '1rem'}}>
-          <label style={{fontSize: '0.875rem', fontWeight: '500'}}>Cover Image:</label>
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} />
-        </div>
+      </header>
+
+      {/* Cover Image Upload */}
+      <div className="mb-6 flex items-center gap-4">
+        <label className="text-sm font-bold text-[var(--color-text-secondary)] uppercase tracking-wider">Cover Image</label>
+        <input 
+           type="file" 
+           accept="image/*" 
+           onChange={(e) => setImageFile(e.target.files[0])} 
+           className="text-sm text-[var(--color-text-secondary)] file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[var(--color-bg-tertiary)] file:text-[var(--color-text-primary)] hover:file:bg-[var(--color-bg-secondary)] file:transition-colors cursor-pointer"
+        />
       </div>
       
-      <RichTextEditor value={content} onChange={(e) => setContent(e.target.value)} />
+      {/* Editor Area */}
+      <div className="flex-1 bg-[var(--color-bg-secondary)] rounded-2xl border border-[var(--color-border)] p-4 shadow-sm min-h-[500px]">
+         {/* Using simple textarea for now if RichTextEditor relies on missing css, but assuming it uses its own styling */}
+         <RichTextEditor value={content} onChange={(e) => setContent(e.target.value)} />
+      </div>
     </div>
   );
 };
