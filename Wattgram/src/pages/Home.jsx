@@ -3,6 +3,7 @@ import { Search, Heart, MessageCircle, Repeat2, Share } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreatePostInline } from '../components/CreatePostInline';
+import { getImageUrl } from '../utils/getImageUrl';
 
 export const Home = () => {
   const [blogs, setBlogs] = useState([]);
@@ -76,12 +77,17 @@ export const Home = () => {
                       </div>
 
                       {blog.image && (
-                        <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)]">
+                        <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
                           <img 
-                            src={blog.image} 
+                            src={getImageUrl(blog.image)} 
                             alt="Post Media" 
                             className="absolute inset-0 w-full h-full object-cover"
-                            onError={(e) => { e.target.style.display = 'none'; }}
+                            onError={(e) => { 
+                              e.target.style.display = 'none'; 
+                              if (e.target.parentElement) {
+                                e.target.parentElement.style.display = 'none';
+                              }
+                            }}
                           />
                         </div>
                       )}

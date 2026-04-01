@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Repeat2, Heart, Share } from 'lucide-react';
+import { getImageUrl } from '../utils/getImageUrl';
 
 export const Explore = () => {
   const [blogs, setBlogs] = useState([]);
@@ -51,7 +52,9 @@ export const Explore = () => {
                 >
                   <Link to={`/blog/${blog.id}`} className="block border-b border-[var(--color-border)] p-4 hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer">
                     <div className="flex gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0"></div>
+                      <div className="w-10 h-10 rounded-full border border-[var(--color-border)] bg-[var(--color-bg-tertiary)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
+                        {authorText.charAt(0).toUpperCase()}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1 text-[15px] mb-1">
                           <span className="font-bold text-[var(--color-text-primary)] hover:underline truncate">{authorText}</span>
@@ -65,12 +68,15 @@ export const Explore = () => {
                         </div>
 
                         {blog.image && (
-                          <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)]">
+                          <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
                             <img 
-                              src={blog.image} 
+                              src={getImageUrl(blog.image)} 
                               alt="Post Media" 
                               className="absolute inset-0 w-full h-full object-cover"
-                              onError={(e) => { e.target.style.display = 'none'; }}
+                              onError={(e) => { 
+                                e.target.style.display = 'none'; 
+                                if (e.target.parentElement) e.target.parentElement.style.display = 'none';
+                              }}
                             />
                           </div>
                         )}

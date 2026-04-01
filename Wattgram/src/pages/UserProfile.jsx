@@ -4,6 +4,7 @@ import { Edit2, Trash2, Calendar, MapPin, Link as LinkIcon, MessageCircle, Repea
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getImageUrl } from '../utils/getImageUrl';
 
 export const UserProfile = () => {
   const { username } = useParams();
@@ -230,8 +231,8 @@ export const UserProfile = () => {
       {/* Banner & Avatar Profile Section */}
       <div className="relative bg-[var(--color-bg-secondary)] border-b border-[var(--color-border)]">
         {/* Banner Placeholder */}
-        <div className="h-32 sm:h-48 bg-gray-300 dark:bg-gray-700 w-full relative overflow-hidden">
-           <div className="absolute inset-0 bg-blue-500/20"></div>
+        <div className="h-32 sm:h-48 bg-[var(--color-accent)]/20 w-full relative overflow-hidden">
+           <div className="absolute inset-0 bg-gradient-to-tr from-[var(--color-accent)]/30 to-transparent"></div>
         </div>
 
         {/* Profile Info Row (Avatar + Action Buttons) */}
@@ -239,9 +240,9 @@ export const UserProfile = () => {
           {/* Avatar (Overlapping banner) */}
           <div className="absolute -top-16 left-4 rounded-full border-4 border-[var(--color-bg-primary)] bg-[var(--color-bg-primary)]">
             {profile.profilePicture ? (
-              <img src={profile.profilePicture} alt="Profile" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover" />
+              <img src={getImageUrl(profile.profilePicture)} alt="Profile" className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover" />
             ) : (
-              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-3xl font-bold text-gray-500">
+              <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-[var(--color-bg-tertiary)] flex items-center justify-center text-3xl font-bold text-[var(--color-text-secondary)]">
                 {profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}
               </div>
             )}
@@ -355,11 +356,11 @@ export const UserProfile = () => {
                 <Link to={`/blog/${blog.id}`} className="block border-b border-[var(--color-border)] p-4 hover:bg-[var(--color-bg-secondary)] transition-colors overflow-hidden group/post">
                   <div className="flex gap-3 relative">
                     {/* Avatar */}
-                    <div className="w-10 h-10 rounded-full border flex-shrink-0 bg-gray-200 overflow-hidden">
+                    <div className="w-10 h-10 rounded-full border border-[var(--color-border)] flex-shrink-0 bg-[var(--color-bg-tertiary)] overflow-hidden">
                        {profile.profilePicture ? (
-                         <img src={profile.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                         <img src={getImageUrl(profile.profilePicture)} alt="Profile" className="w-full h-full object-cover" />
                        ) : (
-                         <div className="w-full h-full flex items-center justify-center font-bold text-gray-500">{profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}</div>
+                         <div className="w-full h-full flex items-center justify-center font-bold text-[var(--color-text-secondary)]">{profile.name ? profile.name.charAt(0).toUpperCase() : 'U'}</div>
                        )}
                     </div>
                     
@@ -392,10 +393,13 @@ export const UserProfile = () => {
                       {blog.image && (
                         <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)]">
                           <img 
-                            src={blog.image} 
+                            src={getImageUrl(blog.image)} 
                             alt="Post Media" 
                             className="absolute inset-0 w-full h-full object-cover"
-                            onError={(e) => { e.target.style.display = 'none'; }}
+                            onError={(e) => { 
+                              e.target.style.display = 'none'; 
+                              if (e.target.parentElement) e.target.parentElement.style.display = 'none';
+                            }}
                           />
                         </div>
                       )}
@@ -489,7 +493,7 @@ export const UserProfile = () => {
           {followers.length > 0 ? followers.map(f => (
             <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               {f.profilePicture ? (
-                <img src={f.profilePicture} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                <img src={getImageUrl(f.profilePicture)} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
               ) : (
                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                   {f.name ? f.name.charAt(0).toUpperCase() : 'U'}
@@ -515,7 +519,7 @@ export const UserProfile = () => {
           {following.length > 0 ? following.map(f => (
             <div key={f.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               {f.profilePicture ? (
-                <img src={f.profilePicture} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
+                <img src={getImageUrl(f.profilePicture)} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
               ) : (
                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                   {f.name ? f.name.charAt(0).toUpperCase() : 'U'}

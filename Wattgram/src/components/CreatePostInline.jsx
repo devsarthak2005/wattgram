@@ -88,7 +88,7 @@ export const CreatePostInline = ({ onPostCreated }) => {
 
   return (
     <div className="border-b border-[var(--color-border)] p-4 flex gap-4 bg-[var(--color-bg-primary)]">
-      <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 mt-1">
+      <div className="w-10 h-10 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0 mt-1">
         {/* User avatar could go here */}
       </div>
       

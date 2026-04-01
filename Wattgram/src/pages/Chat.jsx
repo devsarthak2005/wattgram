@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { Send, User as UserIcon, MessageCircle, ArrowLeft } from 'lucide-react';
+import { getImageUrl } from '../utils/getImageUrl';
 
 export const Chat = () => {
   const location = useLocation();
@@ -180,11 +181,11 @@ export const Chat = () => {
                   className={`flex items-center gap-3 p-4 border-b border-[var(--color-border)] cursor-pointer transition-colors ${selectedContact?.id === c.id ? 'bg-[var(--color-bg-tertiary)] border-r-4 border-r-[var(--color-accent)]' : 'hover:bg-[var(--color-bg-secondary)]'}`}
                   onClick={() => selectContact(c)}
                 >
-                  <div className="w-12 h-12 rounded-full border flex-shrink-0 bg-gray-200 overflow-hidden">
+                  <div className="w-12 h-12 rounded-full border border-[var(--color-border)] flex-shrink-0 bg-[var(--color-bg-tertiary)] overflow-hidden">
                     {c.profilePicture ? (
-                      <img src={c.profilePicture} alt={c.name} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(c.profilePicture)} alt={c.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-gray-500"><UserIcon size={20} /></div>
+                      <div className="w-full h-full flex items-center justify-center font-bold text-[var(--color-text-secondary)]"><UserIcon size={20} /></div>
                     )}
                   </div>
                   <div className="overflow-hidden flex-1">
@@ -202,12 +203,12 @@ export const Chat = () => {
           {selectedContact ? (
             <>
               {/* Chat Header */}
-              <div className="p-3 border-b border-[var(--color-border)] flex items-center gap-3 bg-[var(--color-bg-primary)]/90 backdrop-blur-md sticky top-0 z-10">
-                 <div className="w-10 h-10 rounded-full border flex-shrink-0 bg-gray-200 overflow-hidden">
+              <div className="p-3 border-b border-[var(--color-border)] flex items-center gap-3 bg-[var(--color-bg-primary)]/90 backdrop-blur-md sticky top-0 z-10 mx-[-2px]">
+                 <div className="w-10 h-10 rounded-full border border-[var(--color-border)] flex-shrink-0 bg-[var(--color-bg-tertiary)] overflow-hidden">
                     {selectedContact.profilePicture ? (
-                      <img src={selectedContact.profilePicture} alt={selectedContact.name} className="w-full h-full object-cover" />
+                      <img src={getImageUrl(selectedContact.profilePicture)} alt={selectedContact.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-gray-500"><UserIcon size={20} /></div>
+                      <div className="w-full h-full flex items-center justify-center font-bold text-[var(--color-text-secondary)]"><UserIcon size={20} /></div>
                     )}
                   </div>
                   <div>

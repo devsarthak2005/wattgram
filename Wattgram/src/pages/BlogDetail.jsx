@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Heart, MessageCircle, Share2, MoreHorizontal, ArrowLeft, Repeat2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getImageUrl } from '../utils/getImageUrl';
 
 export const BlogDetail = () => {
   const { id } = useParams();
@@ -107,7 +108,7 @@ export const BlogDetail = () => {
         {/* Author Header */}
         <div className="flex items-center justify-between mb-3">
           <Link to={`/profile/${authorText}`} className="flex items-center gap-3 w-full group">
-            <div className="w-12 h-12 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center font-bold text-gray-500">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
                {authorText.charAt(0).toUpperCase()}
             </div>
             <div>
@@ -127,8 +128,8 @@ export const BlogDetail = () => {
         </div>
 
         {blog.image && (
-          <div className="mt-4 rounded-2xl overflow-hidden border border-[var(--color-border)] w-full">
-            <img src={blog.image} alt={blog.title} className="w-full object-cover max-h-[500px]" />
+          <div className="mt-4 rounded-2xl overflow-hidden border border-[var(--color-border)] w-full bg-[var(--color-bg-secondary)] relative">
+            <img src={getImageUrl(blog.image)} alt={blog.title} className="w-full object-cover max-h-[500px]" onError={(e) => { e.target.style.display = 'none'; if(e.target.parentElement) e.target.parentElement.style.display='none'; }} />
           </div>
         )}
 
@@ -161,7 +162,7 @@ export const BlogDetail = () => {
 
       {/* Reply Input Area */}
       <div className="p-4 border-b border-[var(--color-border)] flex gap-3 items-center">
-        <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0"></div>
+        <div className="w-10 h-10 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0"></div>
         <div className="flex-1 flex gap-2 items-center">
           <input 
             type="text" 
@@ -193,7 +194,7 @@ export const BlogDetail = () => {
                animate={{ opacity: 1 }} 
                className="p-4 border-b border-[var(--color-border)] flex gap-3 hover:bg-[var(--color-bg-secondary)] transition-colors"
              >
-               <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex-shrink-0 flex items-center justify-center font-bold text-gray-500">
+               <div className="w-10 h-10 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
                  {commentAuthor.charAt(0).toUpperCase()}
                </div>
                <div className="flex-1 min-w-0">
