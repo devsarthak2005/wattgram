@@ -44,6 +44,8 @@ public class ChatServiceImpl implements ChatService {
         message.setSender(sender);
         message.setReceiver(receiver);
         message.setContent(chatMessageDto.getContent());
+        message.setMessageType(chatMessageDto.getMessageType() != null ? chatMessageDto.getMessageType() : "TEXT");
+        message.setMediaUrl(chatMessageDto.getMediaUrl());
         message.setTimestamp(LocalDateTime.now());
 
         ChatMessage savedMessage = chatMessageRepository.save(message);
@@ -124,6 +126,8 @@ public class ChatServiceImpl implements ChatService {
         dto.setSenderId(message.getSender().getId());
         dto.setReceiverId(message.getReceiver().getId());
         dto.setContent(message.getContent());
+        dto.setMessageType(message.getMessageType());
+        dto.setMediaUrl(message.getMediaUrl());
         dto.setTimestamp(message.getTimestamp() != null ? message.getTimestamp().toString() : null);
         return dto;
     }

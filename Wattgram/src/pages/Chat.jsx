@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { Send, User as UserIcon, MessageCircle, ArrowLeft } from 'lucide-react';
+import { Send, User as UserIcon, MessageCircle, ArrowLeft, Paperclip, Mic, Square } from 'lucide-react';
 import { getImageUrl } from '../utils/getImageUrl';
 
 export const Chat = () => {
@@ -22,8 +22,12 @@ export const Chat = () => {
   
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
   const stompClient = useRef(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   
   const token = localStorage.getItem('token');
   const [currentUser, setCurrentUser] = useState(() => {
@@ -124,13 +128,15 @@ export const Chat = () => {
   }, [location.state?.contact, currentUserId]);
 
   const sendMessage = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!inputMessage.trim() || !selectedContact || !stompClient.current) return;
 
     const chatMessage = {
       senderId: currentUserId,
       receiverId: selectedContact.id,
-      content: inputMessage
+      content: inputMessage,
+      messageType: 'TEXT',
+      mediaUrl: null
     };
 
     stompClient.current.publish({
@@ -143,11 +149,68 @@ export const Chat = () => {
       senderId: currentUserId, 
       receiverId: selectedContact.id, 
       content: inputMessage,
+      messageType: 'TEXT',
+      mediaUrl: null,
       timestamp: new Date().toISOString() 
     };
     
     setMessages(prev => [...prev, optimisticMsg]);
     setInputMessage('');
+  };
+
+  const uploadAndSend = async (blob, filename, type) => {
+    const formData = new FormData();
+    formData.append("file", blob, filename);
+    try {
+       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images/upload`, {
+         method: 'POST',
+         headers: { 'Authorization': `Bearer ${token}` },
+         body: formData
+       });
+       if(res.ok) {
+         const url = await res.text();
+         const chatMessage = {
+           senderId: currentUserId,
+           receiverId: selectedContact.id,
+           content: '',
+           messageType: type,
+           mediaUrl: url
+         };
+         stompClient.current.publish({ destination: '/app/chat', body: JSON.stringify(chatMessage) });
+         setMessages(prev => [...prev, { id: "temp-" + Date.now(), senderId: currentUserId, receiverId: selectedContact.id, content: '', messageType: type, mediaUrl: url, timestamp: new Date().toISOString() }]);
+       }
+    } catch(e) { console.error("Upload error", e); }
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    fileInputRef.current.value = null; // reset
+    const type = file.type.startsWith('image/') ? 'IMAGE' : (file.type.startsWith('audio/') ? 'AUDIO' : 'TEXT');
+    await uploadAndSend(file, file.name, type);
+  };
+
+  const toggleRecording = async () => {
+    if (isRecording) {
+      if(mediaRecorderRef.current) mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    } else {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        audioChunksRef.current = [];
+        mediaRecorderRef.current.ondataavailable = (e) => { if(e.data.size > 0) audioChunksRef.current.push(e.data); };
+        mediaRecorderRef.current.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          await uploadAndSend(audioBlob, 'voice_note.webm', 'AUDIO');
+          stream.getTracks().forEach(track => track.stop());
+        };
+        mediaRecorderRef.current.start();
+        setIsRecording(true);
+      } catch(err) {
+        alert("Microphone access denied.");
+      }
+    }
   };
 
   if (isLoadingUser) return <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium">Loading chat...</div>;
@@ -157,14 +220,14 @@ export const Chat = () => {
   return (
     <div className="flex flex-col w-full h-full min-h-[calc(100vh-64px)] bg-[var(--color-bg-primary)]">
        {/* Sticky Top Header */}
-       <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[var(--color-border)] p-2 flex items-center justify-between cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+       <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/90 backdrop-blur-md p-4 flex items-center justify-between cursor-pointer mb-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="flex items-center gap-4">
           {selectedContact && (
             <button onClick={() => setSelectedContact(null)} className="p-2 sm:hidden rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
               <ArrowLeft size={20} />
             </button>
           )}
-          <h1 className="text-xl font-bold ml-2">Messages</h1>
+          <h1 className="text-xl font-serif font-bold text-[var(--color-text-primary)]">Inbox</h1>
         </div>
       </header>
       
@@ -218,14 +281,28 @@ export const Chat = () => {
               </div>
 
               {/* Messages Area */}
-              <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-2">
+              <div className="flex-1 p-4 overflow-y-auto flex flex-col gap-4">
                 {messages.map((m, idx) => {
                   const isMine = m.senderId === currentUserId;
                   return (
                     <div key={m.id || idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMine ? 'bg-[var(--color-accent)] text-white rounded-tr-sm' : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-tl-sm'}`}>
-                        <div className="text-[15px] break-words">{m.content}</div>
-                        <div className={`text-[11px] mt-1 text-right ${isMine ? 'text-blue-100' : 'text-[var(--color-text-secondary)]'}`}>
+                      <div className={`max-w-[70%] rounded-2xl px-5 py-3 shadow-sm border border-transparent ${isMine ? 'bg-[var(--color-text-primary)] text-white rounded-br-sm' : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-bl-sm border-[var(--color-border)]'}`}>
+                        
+                        {/* Conditionally Render Media vs Text vs Audio */}
+                        {m.messageType === 'IMAGE' && m.mediaUrl && (
+                          <div className="mb-2 rounded-xl overflow-hidden max-w-xs">
+                             <img src={getImageUrl(m.mediaUrl)} alt="Attachment" className="w-full object-cover" />
+                          </div>
+                        )}
+                        {m.messageType === 'AUDIO' && m.mediaUrl && (
+                          <div className="mb-2">
+                             <audio controls src={getImageUrl(m.mediaUrl)} className="max-w-[200px]" />
+                          </div>
+                        )}
+                        
+                        {m.content && <div className="text-[15px] break-words whitespace-pre-wrap">{m.content}</div>}
+                        
+                        <div className={`text-[10px] mt-1 font-medium tracking-wide ${isMine ? 'text-gray-400 text-right' : 'text-[var(--color-text-tertiary)]'}`}>
                           {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -237,21 +314,41 @@ export const Chat = () => {
 
               {/* Input Area */}
               <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-bg-primary)] mt-auto mb-16 xl:mb-0">
-                <form className="flex items-center gap-2 bg-[var(--color-bg-secondary)] rounded-full px-4 py-1.5" onSubmit={sendMessage}>
-                  <input 
-                    type="text" 
+                <form className="flex items-end gap-3 bg-[var(--color-bg-tertiary)] shadow-sm border border-[var(--color-border)] rounded-2xl p-2" onSubmit={sendMessage}>
+                  
+                  {/* File Upload Hidden Input */}
+                  <input type="file" ref={fileInputRef} className="hidden" accept="image/*, audio/*" onChange={handleFileUpload} />
+                  
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors">
+                    <Paperclip size={20} />
+                  </button>
+
+                  <textarea 
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Start a new message" 
-                    className="flex-1 bg-transparent border-none outline-none text-[15px] text-[var(--color-text-primary)] py-2"
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                    placeholder={isRecording ? "Recording audio..." : "Message"} 
+                    className="flex-1 bg-transparent border-none outline-none text-[15px] text-[var(--color-text-primary)] py-3 resize-none max-h-32"
+                    rows="1"
+                    disabled={isRecording}
                   />
-                  <button 
-                    type="submit" 
-                    className={`p-2 rounded-full transition-colors ${inputMessage.trim() ? 'text-[var(--color-accent)] hover:bg-blue-500/10' : 'text-gray-400'}`}
-                    disabled={!inputMessage.trim()}
-                  >
-                    <Send size={20} />
-                  </button>
+                  
+                  <div className="flex gap-2 mb-1 mr-1">
+                    <button 
+                      type="button"
+                      onClick={toggleRecording}
+                      className={`p-2.5 rounded-full transition-colors ${isRecording ? 'bg-[var(--color-danger)] text-white animate-pulse' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]'}`}
+                    >
+                      {isRecording ? <Square size={18} fill="currentColor" /> : <Mic size={20} />}
+                    </button>
+                    <button 
+                      type="submit" 
+                      className={`p-2.5 rounded-full transition-colors ${inputMessage.trim() ? 'bg-[var(--color-text-primary)] text-white hover:bg-[var(--color-primary-alt-hover)]' : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}
+                      disabled={!inputMessage.trim() && !isRecording}
+                    >
+                      <Send size={18} />
+                    </button>
+                  </div>
                 </form>
               </div>
             </>

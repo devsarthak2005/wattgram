@@ -13,4 +13,6 @@ public class ChatMessageDto {
     private Long receiverId;
     private String content;
     private String timestamp;
+    private String messageType;
+    private String mediaUrl;
 }

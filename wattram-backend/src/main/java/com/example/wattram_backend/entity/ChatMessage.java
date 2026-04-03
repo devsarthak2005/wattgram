@@ -28,4 +28,10 @@ public class ChatMessage {
 
     @Column(nullable = false)
     private LocalDateTime timestamp;
+
+    @Column(name = "message_type")
+    private String messageType = "TEXT";
+
+    @Column(name = "media_url", columnDefinition = "TEXT")
+    private String mediaUrl;
 }

@@ -96,127 +96,129 @@ export const BlogDetail = () => {
   return (
     <div className="flex flex-col w-full min-h-screen bg-[var(--color-bg-primary)]">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/80 backdrop-blur-md border-b border-[var(--color-border)] p-2 flex items-center gap-6 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/90 backdrop-blur-md p-4 flex items-center gap-6 cursor-pointer mb-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
            <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-bold">Post</h1>
+        <h1 className="text-sm font-bold tracking-widest uppercase text-[var(--color-text-secondary)]">Narrative</h1>
       </header>
       
       {/* Main Post Content */}
-      <article className="p-4 border-b border-[var(--color-border)]">
-        {/* Author Header */}
-        <div className="flex items-center justify-between mb-3">
-          <Link to={`/profile/${authorText}`} className="flex items-center gap-3 w-full group">
-            <div className="w-12 h-12 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
-               {authorText.charAt(0).toUpperCase()}
-            </div>
-            <div>
-               <div className="font-bold text-[17px] text-[var(--color-text-primary)] group-hover:underline leading-tight">{authorText}</div>
-               <div className="text-[15px] text-[var(--color-text-secondary)] leading-tight">{handleText}</div>
-            </div>
-          </Link>
-          <button className="p-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] rounded-full transition-colors flex-shrink-0">
-            <MoreHorizontal size={20} />
-          </button>
-        </div>
-
-        {/* Post Body */}
-        <div className="text-[17px] text-[var(--color-text-primary)] leading-normal whitespace-pre-wrap break-words mt-2">
-          {blog.preview && <span className="font-bold block mb-2">{blog.title}</span>}
-          {blog.content || blog.preview}
-        </div>
+      {/* Main Post Content */}
+      <article className="px-4 sm:px-8 max-w-3xl mx-auto w-full">
+        <h1 className="text-4xl md:text-5xl font-serif text-[var(--color-text-primary)] leading-tight mb-6">
+          {blog.title || 'Untitled'}
+        </h1>
 
         {blog.image && (
-          <div className="mt-4 rounded-2xl overflow-hidden border border-[var(--color-border)] w-full bg-[var(--color-bg-secondary)] relative">
-            <img src={getImageUrl(blog.image)} alt={blog.title} className="w-full object-cover max-h-[500px]" onError={(e) => { e.target.style.display = 'none'; if(e.target.parentElement) e.target.parentElement.style.display='none'; }} />
+          <div className="mb-10 w-full bg-[var(--color-bg-secondary)] overflow-hidden rounded-2xl relative aspect-[21/9]">
+            <img src={getImageUrl(blog.image)} alt={blog.title} className="w-full h-full object-cover" onError={(e) => { e.target.style.display = 'none'; if(e.target.parentElement) e.target.parentElement.style.display='none'; }} />
           </div>
         )}
 
-        {/* Post Metadata (Date/Views) */}
-        <div className="text-[15px] text-[var(--color-text-secondary)] mt-4 py-4 border-b border-[var(--color-border)]">
-          {formatDate(blog.date, true)} · <strong>{(likes * 2) + 24}</strong> Views
+        {/* Author Header */}
+        <div className="flex items-center justify-between mb-8 pb-8 border-b border-[var(--color-border)]">
+          <Link to={`/profile/${authorText}`} className="flex items-center gap-4 group">
+            <div className="w-12 h-12 rounded-full bg-[var(--color-bg-secondary)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
+               {authorText.charAt(0).toUpperCase()}
+            </div>
+            <div>
+               <div className="font-bold text-[15px] text-[var(--color-text-primary)] group-hover:underline uppercase tracking-wider">{authorText}</div>
+               <div className="text-[13px] text-[var(--color-text-secondary)]">{formatDate(blog.date, true)}</div>
+            </div>
+          </Link>
+          <div className="flex items-center gap-4 text-[var(--color-text-secondary)]">
+            <button className="hover:text-[var(--color-text-primary)] transition-colors" onClick={handleShare}>
+              <Share2 size={18} />
+            </button>
+            <button className="hover:text-[var(--color-text-primary)] transition-colors">
+              <MoreHorizontal size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Post Actions (Likes, Retweets, etc) */}
-        <div className="flex items-center justify-around py-2 border-b border-[var(--color-border)] text-[var(--color-text-secondary)]">
-          <button className="flex items-center gap-2 group p-2 rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors flex-1 justify-center">
-            <MessageCircle size={22} />
-            <span className="text-[15px]">{comments.length}</span>
-          </button>
-          <button className="flex items-center gap-2 group p-2 rounded-full hover:bg-green-500/10 hover:text-green-500 transition-colors flex-1 justify-center">
-            <Repeat2 size={22} />
-          </button>
+        {/* Post Body (Drop cap style for first letter, generic otherwise) */}
+        <div className="text-[17px] sm:text-[19px] text-[var(--color-text-primary)] leading-relaxed whitespace-pre-wrap break-words mt-2 font-serif first-letter:text-6xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1">
+          {blog.content || blog.preview}
+        </div>
+
+        {/* Post Actions Sub-footer */}
+        <div className="flex items-center justify-start gap-8 py-8 mt-12 border-t border-[var(--color-border)] text-[var(--color-text-secondary)]">
           <button 
-            className={`flex items-center gap-2 group p-2 rounded-full transition-colors flex-1 justify-center ${hasLiked ? 'text-pink-600' : 'hover:bg-pink-500/10 hover:text-pink-500'}`} 
+            className={`flex items-center gap-2 group transition-colors hover:text-[var(--color-text-primary)] ${hasLiked ? 'text-[var(--color-danger)]' : ''}`} 
             onClick={handleLike}
           >
-            <Heart size={22} fill={hasLiked ? 'currentColor' : 'none'} />
-            <span className="text-[15px]">{likes}</span>
+            <Heart size={20} fill={hasLiked ? 'currentColor' : 'none'} className="transition-transform group-hover:scale-110" />
+            <span className="text-sm font-semibold">{likes} Likes</span>
           </button>
-          <button className="flex items-center gap-2 group p-2 rounded-full hover:bg-blue-500/10 hover:text-blue-500 transition-colors flex-1 justify-center" onClick={handleShare}>
-            <Share2 size={22} />
-          </button>
+          <div className="flex items-center gap-2">
+            <MessageCircle size={20} />
+            <span className="text-sm font-semibold">{comments.length} Reflections</span>
+          </div>
         </div>
       </article>
 
-      {/* Reply Input Area */}
-      <div className="p-4 border-b border-[var(--color-border)] flex gap-3 items-center">
-        <div className="w-10 h-10 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0"></div>
-        <div className="flex-1 flex gap-2 items-center">
-          <input 
-            type="text" 
-            placeholder="Post your reply" 
-            className="flex-1 bg-transparent border-none outline-none text-[17px] text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)]"
-            value={newComment}
-            onChange={e => setNewComment(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleCommentSubmit()}
-          />
-          <button 
-            className="px-4 py-1.5 bg-[var(--color-accent)] text-white font-bold rounded-full disabled:opacity-50 transition-opacity"
-            disabled={!newComment.trim()}
-            onClick={handleCommentSubmit}
-          >
-            Reply
-          </button>
-        </div>
-      </div>
+      {/* Reflections Area */}
+      <div className="bg-[var(--color-bg-secondary)] py-12 px-4 sm:px-8 border-t border-[var(--color-border)] flex-1">
+        <div className="max-w-3xl mx-auto w-full">
+          <h2 className="text-2xl font-serif font-bold mb-8 text-[var(--color-text-primary)]">Reflections</h2>
+          
+          {/* Reply Input Area */}
+          <div className="bg-[var(--color-bg-tertiary)] p-4 sm:p-6 rounded-2xl shadow-sm mb-10 flex gap-4 items-start border border-transparent hover:border-[var(--color-border)] transition-colors">
+            <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
+               U
+            </div>
+            <div className="flex-1 flex flex-col gap-3">
+              <textarea 
+                placeholder="Share your reflection..." 
+                className="w-full bg-transparent border-none outline-none text-[15px] font-base text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] resize-none"
+                value={newComment}
+                rows={2}
+                onChange={e => setNewComment(e.target.value)}
+              />
+              <div className="flex justify-end">
+                <button 
+                  className="px-6 py-2 bg-[var(--color-accent)] text-white font-medium rounded-full disabled:opacity-50 transition-all shadow-sm"
+                  disabled={!newComment.trim()}
+                  onClick={handleCommentSubmit}
+                >
+                  Publish
+                </button>
+              </div>
+            </div>
+          </div>
 
       {/* Comments Feed */}
-      <div className="flex-1 pb-16">
-        {comments.map(c => {
-           const commentAuthor = c.authorName || 'User';
-           const commentHandle = `@${commentAuthor.toLowerCase().replace(/\s+/g, '')}`;
-           return (
-             <motion.div 
-               key={c.id} 
-               initial={{ opacity: 0 }} 
-               animate={{ opacity: 1 }} 
-               className="p-4 border-b border-[var(--color-border)] flex gap-3 hover:bg-[var(--color-bg-secondary)] transition-colors"
-             >
-               <div className="w-10 h-10 rounded-full bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
-                 {commentAuthor.charAt(0).toUpperCase()}
-               </div>
-               <div className="flex-1 min-w-0">
-                 <div className="flex flex-wrap items-center gap-1 text-[15px] mb-1 leading-tight">
-                   <Link to={`/profile/${commentAuthor}`} className="font-bold text-[var(--color-text-primary)] hover:underline truncate">{commentAuthor}</Link>
-                   <span className="text-[var(--color-text-secondary)] truncate">{commentHandle}</span>
-                   <span className="text-[var(--color-text-secondary)]">·</span>
-                   <span className="text-[var(--color-text-secondary)] hover:underline flex-shrink-0">{formatDate(c.date)}</span>
-                 </div>
-                 <div className="text-[15px] text-[var(--color-text-primary)] whitespace-pre-wrap break-words pb-2">
-                   {c.content}
-                 </div>
-                 
-                 <div className="flex items-center justify-between mt-1 text-[var(--color-text-secondary)] max-w-sm">
-                    <button className="flex items-center gap-2 group p-0 m-0"><div className="p-2 -m-2 rounded-full group-hover:bg-blue-500/10 group-hover:text-blue-500"><MessageCircle size={16} /></div></button>
-                    <button className="flex items-center gap-2 group p-0 m-0"><div className="p-2 -m-2 rounded-full group-hover:bg-green-500/10 group-hover:text-green-500"><Repeat2 size={16} /></div></button>
-                    <button className="flex items-center gap-2 group p-0 m-0"><div className="p-2 -m-2 rounded-full group-hover:bg-pink-500/10 group-hover:text-pink-500"><Heart size={16} /></div></button>
-                 </div>
-               </div>
-             </motion.div>
-           );
-        })}
+          <div className="flex flex-col gap-6">
+            {comments.map(c => {
+               const commentAuthor = c.authorName || 'User';
+               const commentHandle = `@${commentAuthor.toLowerCase().replace(/\s+/g, '')}`;
+               return (
+                 <motion.div 
+                   key={c.id} 
+                   initial={{ opacity: 0, y: 10 }} 
+                   animate={{ opacity: 1, y: 0 }} 
+                   className="bg-[var(--color-bg-tertiary)] p-6 rounded-2xl shadow-sm border border-transparent hover:border-[var(--color-border)] transition-colors"
+                 >
+                   <div className="flex gap-4">
+                     <div className="w-10 h-10 rounded-full bg-[var(--color-bg-secondary)] flex-shrink-0 flex items-center justify-center font-bold text-[var(--color-text-secondary)]">
+                       {commentAuthor.charAt(0).toUpperCase()}
+                     </div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center justify-between mb-2">
+                         <Link to={`/profile/${commentAuthor}`} className="font-bold text-[13px] text-[var(--color-text-primary)] hover:underline block uppercase tracking-wider">{commentAuthor}</Link>
+                         <span className="text-[13px] text-[var(--color-text-secondary)]">{formatDate(c.date)}</span>
+                       </div>
+                       <div className="text-[15px] font-base text-[var(--color-text-primary)] whitespace-pre-wrap break-words leading-relaxed">
+                         {c.content}
+                       </div>
+                     </div>
+                   </div>
+                 </motion.div>
+               );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -66,23 +66,23 @@ export const CreateBlog = () => {
   return (
     <div className="flex flex-col w-full min-h-screen bg-[var(--color-bg-primary)] p-4 md:p-6 lg:p-8">
       {/* Header / Actions */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b border-[var(--color-border)]">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-[var(--color-border)]">
         <input 
           type="text" 
-          className="flex-1 bg-transparent border-none outline-none text-3xl font-bold text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] placeholder-opacity-50" 
-          placeholder="New Post Title Here..." 
+          className="flex-1 bg-transparent border-none outline-none text-4xl font-serif text-[var(--color-text-primary)] placeholder-[var(--color-text-secondary)] placeholder-opacity-50" 
+          placeholder="New Entry Title..." 
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <div className="flex items-center gap-3 self-end md:self-auto">
           <button 
-            className="px-4 py-2 text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] rounded-full font-bold transition-colors" 
+            className="px-6 py-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] font-medium transition-colors" 
             onClick={() => handlePublish(true)}
           >
-            Save Draft
+            Draft
           </button>
           <button 
-            className="px-6 py-2 bg-[var(--color-accent)] text-white hover:bg-blue-600 rounded-full font-bold transition-colors shadow-sm"
+            className="px-8 py-2 bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)] rounded-full font-medium transition-colors shadow-sm tracking-wide"
             onClick={() => handlePublish(false)}
           >
             Publish
@@ -102,7 +102,7 @@ export const CreateBlog = () => {
       </div>
       
       {/* Editor Area */}
-      <div className="flex-1 bg-[var(--color-bg-secondary)] rounded-2xl border border-[var(--color-border)] p-4 shadow-sm min-h-[500px]">
+      <div className="flex-1 rounded-2xl p-2 min-h-[500px]">
          {/* Using simple textarea for now if RichTextEditor relies on missing css, but assuming it uses its own styling */}
          <RichTextEditor value={content} onChange={(e) => setContent(e.target.value)} />
       </div>
