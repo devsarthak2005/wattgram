@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getImageUrl } from '../utils/getImageUrl';
 import { Modal } from '../components/Modal';
 import { Button } from '../components/Button';
+import { CreatePostInline } from '../components/CreatePostInline';
 
 export const Home = () => {
   const [blogs, setBlogs] = useState([]);
