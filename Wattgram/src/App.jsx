@@ -15,13 +15,13 @@ import './index.css';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] transition-colors duration-200">
-        <div className="max-w-[1265px] mx-auto flex justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] text-[#E8E6E3] transition-colors duration-200">
+        <div className="max-w-[1400px] mx-auto flex justify-center">
           {/* Left Sidebar / Bottom Nav */}
           <SidebarLeft />
 
           {/* Main Feed/Content */}
-          <main className="w-full sm:w-[600px] sm:min-w-[600px] border-x border-[var(--color-border)] min-h-screen pb-20 sm:pb-0 relative">
+          <main className="w-full sm:w-[640px] sm:min-w-[640px] border-x border-[#1e1e1e]/50 min-h-screen pb-20 sm:pb-0 relative">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<LoginSignup />} />

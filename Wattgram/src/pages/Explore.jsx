@@ -33,7 +33,7 @@ export const Explore = () => {
         <h1 className="text-xl font-bold">Explore</h1>
         <p className="text-sm text-[var(--color-text-secondary)]">Discover random stories from writers you might like.</p>
       </header>
-      
+
       {loading ? (
         <div className="p-8 text-center text-[var(--color-text-secondary)] font-medium z-0">Loading trending posts...</div>
       ) : (
@@ -42,9 +42,9 @@ export const Explore = () => {
             {blogs.map(blog => {
               const authorText = blog.authorName || (blog.author && blog.author.username) || 'Anonymous';
               const handleText = `@${authorText.toLowerCase().replace(/\s+/g, '')}`;
-              
+
               return (
-                <motion.div 
+                <motion.div
                   key={blog.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -62,19 +62,19 @@ export const Explore = () => {
                           <span className="text-[var(--color-text-secondary)]">·</span>
                           <span className="text-[var(--color-text-secondary)] hover:underline flex-shrink-0">{formatDate(blog.date)}</span>
                         </div>
-                        
+
                         <div className="text-[15px] text-[var(--color-text-primary)] w-full break-words whitespace-pre-wrap">
                           {blog.preview || blog.title}
                         </div>
 
                         {blog.image && (
                           <div className="mt-3 relative w-full pt-[56.25%] rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
-                            <img 
-                              src={getImageUrl(blog.image)} 
-                              alt="Post Media" 
+                            <img
+                              src={getImageUrl(blog.image)}
+                              alt="Post Media"
                               className="absolute inset-0 w-full h-full object-cover"
-                              onError={(e) => { 
-                                e.target.style.display = 'none'; 
+                              onError={(e) => {
+                                e.target.style.display = 'none';
                                 if (e.target.parentElement) e.target.parentElement.style.display = 'none';
                               }}
                             />

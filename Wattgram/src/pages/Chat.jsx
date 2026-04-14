@@ -19,7 +19,7 @@ export const Chat = () => {
       localStorage.setItem('lastChatContact', JSON.stringify(selectedContact));
     }
   }, [selectedContact]);
-  
+
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -28,7 +28,7 @@ export const Chat = () => {
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
-  
+
   const token = localStorage.getItem('token');
   const [currentUser, setCurrentUser] = useState(() => {
     const str = localStorage.getItem('user');
@@ -42,24 +42,24 @@ export const Chat = () => {
       fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      .then(res => {
-        if(res.ok) return res.json();
-        throw new Error('Not authorized');
-      })
-      .then(user => {
-        localStorage.setItem('user', JSON.stringify(user));
-        setCurrentUser(user);
-      })
-      .catch((err) => {
-        console.error("Failed to fetch user in Chat:", err);
-      })
-      .finally(() => setIsLoadingUser(false));
+        .then(res => {
+          if (res.ok) return res.json();
+          throw new Error('Not authorized');
+        })
+        .then(user => {
+          localStorage.setItem('user', JSON.stringify(user));
+          setCurrentUser(user);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch user in Chat:", err);
+        })
+        .finally(() => setIsLoadingUser(false));
     }
   }, [currentUser, token]);
 
   useEffect(() => {
     if (!currentUserId) return;
-    
+
     // Fetch user contacts
     fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/contacts/${currentUserId}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -75,11 +75,11 @@ export const Chat = () => {
       debug: (str) => console.log(str),
       onConnect: () => {
         client.subscribe(`/topic/messages/${currentUserId}`, (msg) => {
-           const newMsg = JSON.parse(msg.body);
-           setMessages(prev => {
-             if (prev.some(m => m.id === newMsg.id && m.id !== undefined)) return prev;
-             return [...prev, newMsg];
-           });
+          const newMsg = JSON.parse(msg.body);
+          setMessages(prev => {
+            if (prev.some(m => m.id === newMsg.id && m.id !== undefined)) return prev;
+            return [...prev, newMsg];
+          });
         });
       },
       onStompError: (frame) => {
@@ -87,7 +87,7 @@ export const Chat = () => {
         console.error('Additional details: ' + frame.body);
       }
     });
-    
+
     client.activate();
     stompClient.current = client;
 
@@ -144,16 +144,16 @@ export const Chat = () => {
       body: JSON.stringify(chatMessage)
     });
 
-    const optimisticMsg = { 
-      id: "temp-" + Date.now(), 
-      senderId: currentUserId, 
-      receiverId: selectedContact.id, 
+    const optimisticMsg = {
+      id: "temp-" + Date.now(),
+      senderId: currentUserId,
+      receiverId: selectedContact.id,
       content: inputMessage,
       messageType: 'TEXT',
       mediaUrl: null,
-      timestamp: new Date().toISOString() 
+      timestamp: new Date().toISOString()
     };
-    
+
     setMessages(prev => [...prev, optimisticMsg]);
     setInputMessage('');
   };
@@ -162,29 +162,29 @@ export const Chat = () => {
     const formData = new FormData();
     formData.append("file", blob, filename);
     try {
-       const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images/upload`, {
-         method: 'POST',
-         headers: { 'Authorization': `Bearer ${token}` },
-         body: formData
-       });
-       if(res.ok) {
-         const url = await res.text();
-         const chatMessage = {
-           senderId: currentUserId,
-           receiverId: selectedContact.id,
-           content: '',
-           messageType: type,
-           mediaUrl: url
-         };
-         stompClient.current.publish({ destination: '/app/chat', body: JSON.stringify(chatMessage) });
-         setMessages(prev => [...prev, { id: "temp-" + Date.now(), senderId: currentUserId, receiverId: selectedContact.id, content: '', messageType: type, mediaUrl: url, timestamp: new Date().toISOString() }]);
-       }
-    } catch(e) { console.error("Upload error", e); }
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/images/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      if (res.ok) {
+        const url = await res.text();
+        const chatMessage = {
+          senderId: currentUserId,
+          receiverId: selectedContact.id,
+          content: '',
+          messageType: type,
+          mediaUrl: url
+        };
+        stompClient.current.publish({ destination: '/app/chat', body: JSON.stringify(chatMessage) });
+        setMessages(prev => [...prev, { id: "temp-" + Date.now(), senderId: currentUserId, receiverId: selectedContact.id, content: '', messageType: type, mediaUrl: url, timestamp: new Date().toISOString() }]);
+      }
+    } catch (e) { console.error("Upload error", e); }
   };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    if(!file) return;
+    if (!file) return;
     fileInputRef.current.value = null; // reset
     const type = file.type.startsWith('image/') ? 'IMAGE' : (file.type.startsWith('audio/') ? 'AUDIO' : 'TEXT');
     await uploadAndSend(file, file.name, type);
@@ -192,14 +192,14 @@ export const Chat = () => {
 
   const toggleRecording = async () => {
     if (isRecording) {
-      if(mediaRecorderRef.current) mediaRecorderRef.current.stop();
+      if (mediaRecorderRef.current) mediaRecorderRef.current.stop();
       setIsRecording(false);
     } else {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorderRef.current = new MediaRecorder(stream);
         audioChunksRef.current = [];
-        mediaRecorderRef.current.ondataavailable = (e) => { if(e.data.size > 0) audioChunksRef.current.push(e.data); };
+        mediaRecorderRef.current.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
         mediaRecorderRef.current.onstop = async () => {
           const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
           await uploadAndSend(audioBlob, 'voice_note.webm', 'AUDIO');
@@ -207,7 +207,7 @@ export const Chat = () => {
         };
         mediaRecorderRef.current.start();
         setIsRecording(true);
-      } catch(err) {
+      } catch (err) {
         alert("Microphone access denied.");
       }
     }
@@ -219,8 +219,8 @@ export const Chat = () => {
   // Render Mobile/Narrow Layout where it's either contacts list or chat view
   return (
     <div className="flex flex-col w-full h-full min-h-[calc(100vh-64px)] bg-[var(--color-bg-primary)]">
-       {/* Sticky Top Header */}
-       <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/90 backdrop-blur-md p-4 flex items-center justify-between cursor-pointer mb-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      {/* Sticky Top Header */}
+      <header className="sticky top-0 z-10 bg-[var(--color-bg-primary)]/90 backdrop-blur-md p-4 flex items-center justify-between cursor-pointer mb-2" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
         <div className="flex items-center gap-4">
           {selectedContact && (
             <button onClick={() => setSelectedContact(null)} className="p-2 sm:hidden rounded-full hover:bg-[var(--color-bg-tertiary)] transition-colors">
@@ -230,7 +230,7 @@ export const Chat = () => {
           <h1 className="text-xl font-serif font-bold text-[var(--color-text-primary)]">Inbox</h1>
         </div>
       </header>
-      
+
       <div className="flex flex-1 overflow-hidden h-full">
         {/* Contacts Sidebar (Hidden on mobile if a contact is selected) */}
         <div className={`w-full sm:w-[250px] border-r border-[var(--color-border)] overflow-y-auto ${selectedContact ? 'hidden sm:block' : 'block'}`}>
@@ -239,8 +239,8 @@ export const Chat = () => {
           ) : (
             <ul className="flex flex-col">
               {contacts.map(c => (
-                <li 
-                  key={c.id} 
+                <li
+                  key={c.id}
                   className={`flex items-center gap-3 p-4 border-b border-[var(--color-border)] cursor-pointer transition-colors ${selectedContact?.id === c.id ? 'bg-[var(--color-bg-tertiary)] border-r-4 border-r-[var(--color-accent)]' : 'hover:bg-[var(--color-bg-secondary)]'}`}
                   onClick={() => selectContact(c)}
                 >
@@ -267,17 +267,17 @@ export const Chat = () => {
             <>
               {/* Chat Header */}
               <div className="p-3 border-b border-[var(--color-border)] flex items-center gap-3 bg-[var(--color-bg-primary)]/90 backdrop-blur-md sticky top-0 z-10 mx-[-2px]">
-                 <div className="w-10 h-10 rounded-full border border-[var(--color-border)] flex-shrink-0 bg-[var(--color-bg-tertiary)] overflow-hidden">
-                    {selectedContact.profilePicture ? (
-                      <img src={getImageUrl(selectedContact.profilePicture)} alt={selectedContact.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center font-bold text-[var(--color-text-secondary)]"><UserIcon size={20} /></div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-[var(--color-text-primary)] leading-tight">{selectedContact.name}</h3>
-                    <span className="text-[13px] text-[var(--color-text-secondary)]">@{selectedContact.username}</span>
-                  </div>
+                <div className="w-10 h-10 rounded-full border border-[var(--color-border)] flex-shrink-0 bg-[var(--color-bg-tertiary)] overflow-hidden">
+                  {selectedContact.profilePicture ? (
+                    <img src={getImageUrl(selectedContact.profilePicture)} alt={selectedContact.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center font-bold text-[var(--color-text-secondary)]"><UserIcon size={20} /></div>
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-bold text-[var(--color-text-primary)] leading-tight">{selectedContact.name}</h3>
+                  <span className="text-[13px] text-[var(--color-text-secondary)]">@{selectedContact.username}</span>
+                </div>
               </div>
 
               {/* Messages Area */}
@@ -287,21 +287,21 @@ export const Chat = () => {
                   return (
                     <div key={m.id || idx} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[70%] rounded-2xl px-5 py-3 shadow-sm border border-transparent ${isMine ? 'bg-[var(--color-text-primary)] text-white rounded-br-sm' : 'bg-[var(--color-bg-tertiary)] text-[var(--color-text-primary)] rounded-bl-sm border-[var(--color-border)]'}`}>
-                        
+
                         {/* Conditionally Render Media vs Text vs Audio */}
                         {m.messageType === 'IMAGE' && m.mediaUrl && (
                           <div className="mb-2 rounded-xl overflow-hidden max-w-xs">
-                             <img src={getImageUrl(m.mediaUrl)} alt="Attachment" className="w-full object-cover" />
+                            <img src={getImageUrl(m.mediaUrl)} alt="Attachment" className="w-full object-cover" />
                           </div>
                         )}
                         {m.messageType === 'AUDIO' && m.mediaUrl && (
                           <div className="mb-2">
-                             <audio controls src={getImageUrl(m.mediaUrl)} className="max-w-[200px]" />
+                            <audio controls src={getImageUrl(m.mediaUrl)} className="max-w-[200px]" />
                           </div>
                         )}
-                        
+
                         {m.content && <div className="text-[15px] break-words whitespace-pre-wrap">{m.content}</div>}
-                        
+
                         <div className={`text-[10px] mt-1 font-medium tracking-wide ${isMine ? 'text-gray-400 text-right' : 'text-[var(--color-text-tertiary)]'}`}>
                           {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
@@ -315,34 +315,34 @@ export const Chat = () => {
               {/* Input Area */}
               <div className="p-3 border-t border-[var(--color-border)] bg-[var(--color-bg-primary)] mt-auto mb-16 xl:mb-0">
                 <form className="flex items-end gap-3 bg-[var(--color-bg-tertiary)] shadow-sm border border-[var(--color-border)] rounded-2xl p-2" onSubmit={sendMessage}>
-                  
+
                   {/* File Upload Hidden Input */}
                   <input type="file" ref={fileInputRef} className="hidden" accept="image/*, audio/*" onChange={handleFileUpload} />
-                  
+
                   <button type="button" onClick={() => fileInputRef.current?.click()} className="p-3 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] rounded-full transition-colors">
                     <Paperclip size={20} />
                   </button>
 
-                  <textarea 
+                  <textarea
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                    placeholder={isRecording ? "Recording audio..." : "Message"} 
+                    placeholder={isRecording ? "Recording audio..." : "Message"}
                     className="flex-1 bg-transparent border-none outline-none text-[15px] text-[var(--color-text-primary)] py-3 resize-none max-h-32"
                     rows="1"
                     disabled={isRecording}
                   />
-                  
+
                   <div className="flex gap-2 mb-1 mr-1">
-                    <button 
+                    <button
                       type="button"
                       onClick={toggleRecording}
                       className={`p-2.5 rounded-full transition-colors ${isRecording ? 'bg-[var(--color-danger)] text-white animate-pulse' : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-secondary)]'}`}
                     >
                       {isRecording ? <Square size={18} fill="currentColor" /> : <Mic size={20} />}
                     </button>
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       className={`p-2.5 rounded-full transition-colors ${inputMessage.trim() ? 'bg-[var(--color-text-primary)] text-white hover:bg-[var(--color-primary-alt-hover)]' : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}`}
                       disabled={!inputMessage.trim() && !isRecording}
                     >
